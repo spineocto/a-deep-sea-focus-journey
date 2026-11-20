@@ -12,7 +12,7 @@
 
 ## Tasks
 
-- [ ] 1. 建立專案骨架與基礎設定
+- [x] 1. 建立專案骨架與基礎設定
   - **重要：專案根目錄已有 .kiro、art、docs、public、README.md、LICENSE、.gitignore，建立 Vite 專案時絕對不可刪除或覆蓋這些檔案**
   - 如果工具詢問要不要清空資料夾，選擇「不要」
   - 可以手動建立 package.json、tsconfig.json、vite.config.ts、index.html、src/ 等新檔案
