@@ -30,7 +30,8 @@ IDLE → FOCUSING → (DISTRACTED ↔ FOCUSING) → SHORT_BREAK / LONG_BREAK →
 - Demo mode (×60) that does not pollute real progress
 
 ## Nice-to-have (only if time)
-Shipwreck interior, sound (muted by default), extra horror hints, more cards.
+Sound (muted by default), extra horror hints, more cards.
+Dropped (2026-11-19): shipwreck interior scene. Long break = docked beside the wreck exterior only.
 
 ## Default parameters (keep as central config constants)
 | Param | Default |
