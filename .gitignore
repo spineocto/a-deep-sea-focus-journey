@@ -1,0 +1,28 @@
+# dependencies & builds
+node_modules/
+dist/
+build/
+.next/
+.vercel/
+.netlify/
+
+# secrets
+.env
+.env.*
+!.env.example
+
+# testing
+coverage/
+.nyc_output/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# NOTE: do NOT ignore /.kiro — it is required for Kiroween judging.
+
+# python (art scripts)
+__pycache__/
+.venv/
+*.pyc
