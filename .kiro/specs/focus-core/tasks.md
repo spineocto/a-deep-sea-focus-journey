@@ -13,6 +13,9 @@
 ## Tasks
 
 - [ ] 1. 建立專案骨架與基礎設定
+  - **重要：專案根目錄已有 .kiro、art、docs、public、README.md、LICENSE、.gitignore，建立 Vite 專案時絕對不可刪除或覆蓋這些檔案**
+  - 如果工具詢問要不要清空資料夾，選擇「不要」
+  - 可以手動建立 package.json、tsconfig.json、vite.config.ts、index.html、src/ 等新檔案
   - 使用 Vite 建立 TypeScript 專案
   - 設定 tsconfig.json 啟用嚴格模式
   - 安裝 Vitest 測試框架
@@ -20,6 +23,7 @@
   - 設定 package.json scripts（dev、build、test）
   - 建立基本目錄結構（src/、src/__tests__/）
   - 驗證開發伺服器可啟動
+  - **確認 .kiro 目錄仍然存在且未被修改**
   - _需求: 1.1, 1.2, 1.3, 1.4, 1.5_
 
 - [ ] 2. 實作 Config 模組
@@ -49,7 +53,7 @@
   - 確保非法轉換回傳 `{ success: false, error: '...' }`
   - _需求: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 3.10, 3.11, 3.12, 3.13_
 
-- [ ]* 3.1 撰寫 State Machine 單元測試
+- [ ] 3.1 撰寫 State Machine 單元測試
   - 建立 `src/__tests__/state-machine.test.ts`
   - 測試所有合法狀態轉換（IDLE → FOCUSING、FOCUSING → DISTRACTED 等）
   - 測試所有非法狀態轉換回傳 false
@@ -80,7 +84,7 @@
   - 確保專注時間永遠非負（使用 Math.max(0, ...)）
   - _需求: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7_
 
-- [ ]* 4.1 撰寫 Timer 模組單元測試
+- [ ] 4.1 撰寫 Timer 模組單元測試
   - 建立 `src/__tests__/timer.test.ts`
   - 測試時間戳計算準確性（正常模式）
   - 測試 Demo 模式時間加速（60 倍）
@@ -119,7 +123,7 @@
   - 確保 totalDepth 不低於 roundStartDepth
   - _需求: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7_
 
-- [ ]* 5.1 撰寫 Depth Calculator 單元測試
+- [ ] 5.1 撰寫 Depth Calculator 單元測試
   - 建立 `src/__tests__/depth-calculator.test.ts`
   - 測試深度計算公式（12 m/min）
   - 測試上浮懲罰計算（20% 單次、50% 上限）
@@ -154,7 +158,7 @@
   - 確保隱藏時長 > 5000ms 時 triggered: true
   - _需求: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 6.8_
 
-- [ ]* 6.1 撰寫 Distraction Detector 單元測試
+- [ ] 6.1 撰寫 Distraction Detector 單元測試
   - 建立 `src/__tests__/distraction-detector.test.ts`
   - 測試 5 秒閾值判斷（4999ms 不觸發、5001ms 觸發）
   - 測試邊界值（0ms、5000ms、5001ms）
@@ -187,7 +191,7 @@
   - 確保一般卡片選擇時排除 isEndingCard: true 的卡片
   - _需求: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7, 8.8, 8.9, 8.10_
 
-- [ ]* 7.1 撰寫 Codex Manager 單元測試
+- [ ] 7.1 撰寫 Codex Manager 單元測試
   - 建立 `src/__tests__/codex-manager.test.ts`
   - 測試第一輪獲得 Moon jellyfish
   - 測試最淺優先選擇邏輯（跨多個 Zone）
@@ -225,7 +229,7 @@
   - 加入錯誤處理（localStorage 讀寫失敗時 console.error）
   - _需求: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6, 10.7, 10.8, 10.9, 10.12, 10.13, 10.14_
 
-- [ ]* 8.1 撰寫 Storage 模組單元測試
+- [ ] 8.1 撰寫 Storage 模組單元測試
   - 建立 `src/__tests__/storage.test.ts`
   - 使用 mock localStorage（例如 vitest 的 vi.stubGlobal）
   - 測試儲存與載入往返
@@ -318,7 +322,7 @@
   - 儲存進度
   - _需求: 3.5, 3.6, 3.7, 7.5, 7.6, 8.3, 9.8, 9.9, 9.10, 9.11_
 
-- [ ]* 14.1 撰寫 Application Controller 單元測試
+- [ ] 14.1 撰寫 Application Controller 單元測試
   - 建立 `src/__tests__/app-controller.test.ts`
   - 測試初始化流程
   - 測試 restoreFromStorage() 處理 FOCUSING 狀態（視為放棄）
@@ -328,9 +332,14 @@
   - 測試完成一輪流程（深度結算、發卡、進入休息）
   - 測試達到 10900m 進入 ENDING
   - 測試重新下潛（深度歸零、Codex 保留）
+  - 測試 endingSeen 只在第一次達到 10900m 時進入 ENDING
+  - 測試 endingSeen 為 true 後再次完成一輪進入休息而非 ENDING
+  - 測試 DISTRACTED 狀態 3 秒後自動轉回 FOCUSING
+  - 測試 DISTRACTED 狀態時可以點擊放棄
+  - 測試重開時 DISTRACTED 狀態視為放棄
   - _需求: 9.2, 9.3, 9.4, 9.5, 9.6, 9.10, 9.11, 9.13, 9.14, 9.15_
 
-- [ ]* 14.2 撰寫 Application Controller 整合測試
+- [ ] 14.2 撰寫 Application Controller 整合測試
   - 在 `src/__tests__/app-controller.test.ts` 新增整合測試
   - 測試完整一輪流程（開始 → 完成 → 獲得卡片 → 休息 → IDLE）
   - 測試分心流程（開始 → 隱藏 → 顯示 → DISTRACTED → 繼續）
