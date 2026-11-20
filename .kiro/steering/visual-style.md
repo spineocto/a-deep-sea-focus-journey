@@ -5,6 +5,7 @@ Final direction: **Expressionism + minimal negative space.**
 ## Composition
 - From the twilight zone down, ~3/4 of the frame is dark sea. Main view keeps only three things: dark, light, the diving bell.
 - Background: black-blue that bleeds like paint in water. Never flat solid colour.
+- Diving bell texture: expressionist — jittered, rough brush-stroke edges, bold strokes, heavy contrast. NOT realistic brass/rust/scratches. Rivets and porthole drawn stroke by stroke; the companion inside stays soft, bright and cute.
 - The bell is small and lonely. Its warm glow (with the companion inside) is the only warm colour on screen.
 - A resident eye: small, faint, blurry, far away in the top-right. A hint, not a subject.
 
