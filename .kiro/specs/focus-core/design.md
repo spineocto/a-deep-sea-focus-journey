@@ -106,7 +106,6 @@ export const Config = {
   // 分心參數
   distractionThreshold: 5, // 秒
   distractedDurationSec: 3, // DISTRACTED 狀態持續時間（秒）
-  distractedDurationSec: 3, // DISTRACTED 狀態持續時間（秒）
   distractionRisePercentage: 20, // %
   maxDistractionRisePercentage: 50, // %
   
@@ -205,7 +204,7 @@ export interface TransitionResult {
 | LONG_BREAK | SKIP_BREAK | IDLE | - |
 | ENDING | ENDING_CONFIRMED | IDLE | - |
 | ENDING | DIVE_AGAIN | IDLE | - |
-| IDLE | DIVE_AGAIN | IDLE | 曾達目標 |
+| IDLE | DIVE_AGAIN | IDLE | endingSeen 為 true |
 
 **實作要點**：
 
@@ -826,6 +825,11 @@ function restoreFromStorage(storage: Storage, isDemoMode: boolean): void {
   if (data.currentState.state === AppState.FOCUSING || 
       data.currentState.state === AppState.DISTRACTED) {
     // 視為放棄：使用 getElapsedFocusedTime 計算保留深度
+    
+    // 先載入本輪的起始深度和上浮懲罰
+    depthState.roundStartDepth = data.currentState.roundStartDepth;
+    depthState.roundRisePenalty = data.currentState.roundRisePenalty;
+    
     const timerState: TimerState = {
       roundStartAt: data.currentState.roundStartAt!,
       selectedDurationMs: data.currentState.selectedDurationMs!,

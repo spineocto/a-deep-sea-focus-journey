@@ -68,15 +68,16 @@ focus-core 是深海番茄鐘 web app 的核心計時與狀態管理模組。此
 1. THE State_Machine SHALL 定義 IDLE、FOCUSING、DISTRACTED、SHORT_BREAK、LONG_BREAK、ENDING 等狀態
 2. WHEN 在 IDLE 狀態且使用者選擇時長並點擊 START DESCENT，THE State_Machine SHALL 轉換到 FOCUSING 狀態
 3. WHEN 在 FOCUSING 狀態且使用者返回分頁時發現隱藏超過 distractionThreshold（5 秒），THE State_Machine SHALL 轉換到 DISTRACTED 狀態
-4. WHEN 在 DISTRACTED 狀態且巨眼演出結束，THE State_Machine SHALL 轉換回 FOCUSING 狀態
+4. WHEN 在 DISTRACTED 狀態且經過 distractedDurationSec（3 秒），THE State_Machine SHALL 自動轉換回 FOCUSING 狀態
 5. WHEN 在 FOCUSING 狀態且完成一輪（Total_Depth 未達 10900m 且非第 4、8、12... 輪），THE State_Machine SHALL 轉換到 SHORT_BREAK 狀態
 6. WHEN 在 FOCUSING 狀態且完成一輪（Total_Depth 未達 10900m 且為第 4、8、12... 輪），THE State_Machine SHALL 轉換到 LONG_BREAK 狀態
 7. WHEN 在 FOCUSING 狀態且完成一輪且 Total_Depth 已達 10900m，THE State_Machine SHALL 轉換到 ENDING 狀態（取代休息）
 8. WHEN 在 SHORT_BREAK 或 LONG_BREAK 狀態且休息完成或使用者跳過，THE State_Machine SHALL 轉換到 IDLE 狀態
 9. WHEN 在 ENDING 狀態且使用者確認，THE State_Machine SHALL 轉換到 IDLE 狀態
 10. WHEN 在 FOCUSING 狀態且使用者點擊放棄，THE State_Machine SHALL 轉換到 IDLE 狀態
-11. THE State_Machine SHALL 記錄當前狀態並允許查詢
-12. THE State_Machine SHALL 拒絕非法狀態轉換
+11. WHEN 在 DISTRACTED 狀態且使用者點擊放棄，THE State_Machine SHALL 轉換到 IDLE 狀態
+12. THE State_Machine SHALL 記錄當前狀態並允許查詢
+13. THE State_Machine SHALL 拒絕非法狀態轉換
 
 ### 需求 4：計時器與時間戳追蹤
 
@@ -85,7 +86,7 @@ focus-core 是深海番茄鐘 web app 的核心計時與狀態管理模組。此
 #### 驗收標準
 
 1. WHEN 使用者開始一輪專注，THE Timer SHALL 記錄開始時間戳（roundStartAt）
-2. WHEN 查詢剩餘時間，THE Timer SHALL 用當前時間戳減去 roundStartAt 計算已流逝時間
+2. WHEN 查詢剩餘時間，THE Timer SHALL 回傳（選定時長 − 已專注時間），分心會延長這一輪的實際時間
 3. WHEN Demo_Mode 啟用，THE Timer SHALL 將時間流逝速度乘以 60
 4. THE Timer SHALL 在每次 tick（例如 requestAnimationFrame）時重新計算而非累加
 5. WHEN 一輪完成，THE Timer SHALL 回傳該輪的 Focused_Time
@@ -172,12 +173,14 @@ focus-core 是深海番茄鐘 web app 的核心計時與狀態管理模組。此
 7. WHEN 使用者在 SHORT_BREAK 或 LONG_BREAK 狀態關閉頁面，THE System SHALL 在下次開啟時視為休息完成
 8. WHEN 使用者完成第 4、8、12... 輪（根據 Completed_Rounds），THE System SHALL 進入 LONG_BREAK 而非 SHORT_BREAK
 9. WHEN 一輪完成且 Total_Depth 已達到 10900m，THE System SHALL 進入 ENDING 狀態（取代 SHORT_BREAK 或 LONG_BREAK）
-10. WHEN 使用者放棄一輪且 Total_Depth 已達到 10900m，THE System SHALL 不進入 ENDING，下一輪完成時才進入 ENDING
-11. WHEN 在 ENDING 狀態，THE System SHALL 保持 Total_Depth 在 10900m
-12. WHEN 在 ENDING 狀態後開始新輪，THE System SHALL 允許繼續計時但 Total_Depth 保持在底部
-13. WHEN 在 ENDING 狀態且使用者選擇 "dive again"，THE System SHALL 將 Total_Depth 重置為 0
-14. WHEN 選擇 "dive again"，THE System SHALL 保留 Codex 解鎖紀錄
-15. WHEN 選擇 "dive again"，THE System SHALL 保留 Completed_Rounds
+12. WHEN 第一次進入 ENDING 狀態，THE System SHALL 設定 endingSeen 為 true
+13. WHEN endingSeen 為 true 且再次完成一輪達到 10900m，THE System SHALL 進入 SHORT_BREAK 或 LONG_BREAK 而非 ENDING
+12. WHEN 使用者放棄一輪且 Total_Depth 已達到 10900m，THE System SHALL 不進入 ENDING，下一輪完成時才進入 ENDING
+13. WHEN 在 ENDING 狀態，THE System SHALL 保持 Total_Depth 在 10900m
+14. WHEN 在 ENDING 狀態後開始新輪，THE System SHALL 允許繼續計時但 Total_Depth 保持在底部
+15. WHEN 在 ENDING 狀態且使用者選擇 "dive again"，THE System SHALL 將 Total_Depth 重置為 0
+16. WHEN 選擇 "dive again"，THE System SHALL 保留 Codex 解鎖紀錄
+17. WHEN 選擇 "dive again"，THE System SHALL 保留 Completed_Rounds
 
 ### 需求 10：本地儲存持久化
 
