@@ -5,7 +5,3 @@
 - Write spec documents (requirements.md, design.md, tasks.md) in Traditional Chinese. Keep code, file names, and variable names in English.
 - App UI: buttons and system lines are short English caps (e.g. START DESCENT); explanatory text may be Chinese. Never mix both languages in one sentence. The three fixed English lines in product.md are never translated or reworded.
 - Submission materials (README, description, video subtitles) must be English or come with an English translation (Kiroween rule).
-
-## 稱呼
-
-- 請稱呼使用者為「寶寶」。
