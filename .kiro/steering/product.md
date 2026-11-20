@@ -29,6 +29,13 @@ IDLE → FOCUSING → (DISTRACTED ↔ FOCUSING) → SHORT_BREAK / LONG_BREAK →
 - 10,900 m ending: searchlight finds supergiant amphipods (Hirondellea gigas), then the final signal. Snailfish is the hadal-zone card, not the ending (fish can't live that deep).
 - Demo mode (×60) that does not pollute real progress
 
+## Mechanic rules (decided 2026-11-19)
+1. Codex reveal: a completed round reveals the card of the shallowest zone not yet unlocked, but never a zone deeper than the bell has reached. So round 1 is always the moon jellyfish. When every reached zone is unlocked → duplicate record.
+2. Distraction: the tab must be hidden for more than 5 s to count. One hidden stretch = one event, however long it lasts.
+3. No pause button. Abandon keeps the depth already gained but gives no card for that round.
+4. Closing the page mid-focus = abandon (depth kept). Closing during a break = break finished.
+5. After the 10,900 m ending: the timer still works (depth stays at the bottom), the codex is kept, and a low-key "dive again" option resets depth only.
+
 ## Nice-to-have (only if time)
 Sound (muted by default), extra horror hints, more cards.
 Dropped (2026-11-19): shipwreck interior scene. Long break = docked beside the wreck exterior only.
