@@ -105,6 +105,8 @@ export const Config = {
   
   // 分心參數
   distractionThreshold: 5, // 秒
+  distractedDurationSec: 3, // DISTRACTED 狀態持續時間（秒）
+  distractedDurationSec: 3, // DISTRACTED 狀態持續時間（秒）
   distractionRisePercentage: 20, // %
   maxDistractionRisePercentage: 50, // %
   
@@ -156,7 +158,7 @@ export type StateTransitionEvent =
   | { type: 'START_FOCUS'; durationMinutes: number }
   | { type: 'DISTRACTION_DETECTED' }
   | { type: 'DISTRACTION_ANIMATION_COMPLETE' }
-  | { type: 'ROUND_COMPLETE'; reachedTarget: boolean; isLongBreak: boolean }
+  | { type: 'ROUND_COMPLETE'; shouldShowEnding: boolean; isLongBreak: boolean }
   | { type: 'BREAK_COMPLETE' }
   | { type: 'SKIP_BREAK' }
   | { type: 'ABANDON_ROUND' }
@@ -196,11 +198,13 @@ export interface TransitionResult {
 | FOCUSING | ROUND_COMPLETE | LONG_BREAK | 未達目標 && 是長休息輪 |
 | FOCUSING | ROUND_COMPLETE | ENDING | 已達目標 |
 | FOCUSING | ABANDON_ROUND | IDLE | - |
+| DISTRACTED | ABANDON_ROUND | IDLE | - |
 | SHORT_BREAK | BREAK_COMPLETE | IDLE | - |
 | SHORT_BREAK | SKIP_BREAK | IDLE | - |
 | LONG_BREAK | BREAK_COMPLETE | IDLE | - |
 | LONG_BREAK | SKIP_BREAK | IDLE | - |
 | ENDING | ENDING_CONFIRMED | IDLE | - |
+| ENDING | DIVE_AGAIN | IDLE | - |
 | IDLE | DIVE_AGAIN | IDLE | 曾達目標 |
 
 **實作要點**：
@@ -488,6 +492,7 @@ document.addEventListener('visibilitychange', () => {
       if (event.triggered) {
         // 觸發分心：轉換狀態
         stateMachine.transition({ type: 'DISTRACTION_DETECTED' });
+        distractedStartAt = Date.now(); // 記錄 DISTRACTED 開始時間
         
         // 計算上浮懲罰
         const penalty = distractionDetector.calculateRisePenalty(
@@ -559,7 +564,7 @@ export const CREATURE_CARDS: CreatureCard[] = [
     commonNameEn: 'Moon jellyfish',
     commonNameZh: '海月水母',
     depthRange: '0-1,250 m',
-    facts: 'Mostly near the surface in coastal waters...',
+    facts: 'Mostly near the surface in coastal waters; recorded 0–1,250 m. Sources: SeaLifeBase; WoRMS',
     isEndingCard: false
   },
   {
@@ -569,7 +574,7 @@ export const CREATURE_CARDS: CreatureCard[] = [
     commonNameEn: 'Barreleye',
     commonNameZh: '桶眼魚',
     depthRange: '600-800 m',
-    facts: 'Transparent head, green tubular eyes...',
+    facts: '600–800 m; transparent head, green tubular eyes. Sources: MBARI; Monterey Bay Aquarium',
     isEndingCard: false
   },
   {
@@ -579,7 +584,7 @@ export const CREATURE_CARDS: CreatureCard[] = [
     commonNameEn: 'Humpback anglerfish',
     commonNameZh: '黑魔鬼鮟鱇',
     depthRange: '100-3,600 m',
-    facts: 'Usually 500-1,500 m...',
+    facts: 'Usually 100–1,500 m (most often 500–1,500 m); recorded to ~3,600 m. Sources: FishBase; Pietsch via Zenodo',
     isEndingCard: false
   },
   {
@@ -589,7 +594,7 @@ export const CREATURE_CARDS: CreatureCard[] = [
     commonNameEn: 'Dumbo octopus',
     commonNameZh: '小飛象章魚',
     depthRange: '1,000-7,000 m',
-    facts: 'Deepest octopus ever filmed at 6,957 m...',
+    facts: '1,000–7,000 m; deepest octopus ever filmed at 6,957 m (Java Trench, 2020). Sources: NHM London; Marine Biology 2020; Guinness',
     isEndingCard: false
   },
   {
@@ -599,7 +604,7 @@ export const CREATURE_CARDS: CreatureCard[] = [
     commonNameEn: 'Mariana snailfish',
     commonNameZh: '馬里亞納獅子魚',
     depthRange: '6,198-8,178 m',
-    facts: 'Usually 7,000-8,000 m, no fish likely below ~8,400 m...',
+    facts: '6,198–8,178 m, usually 7,000–8,000 m; no fish likely below ~8,400 m. Sources: FishBase; NOAA Ocean Exploration',
     isEndingCard: false
   },
   {
@@ -609,7 +614,7 @@ export const CREATURE_CARDS: CreatureCard[] = [
     commonNameEn: 'Supergiant amphipod',
     commonNameZh: '巨型端足類',
     depthRange: '6,800-11,000 m',
-    facts: 'Dominant animal of Challenger Deep (collected at 10,929 m)...',
+    facts: '~6,800–11,000 m; dominant animal of Challenger Deep (collected at 10,929 m). Sources: Cell 2025; Mitochondrial DNA B 2016',
     isEndingCard: true
   }
 ];
@@ -623,7 +628,7 @@ export interface CodexManager {
   selectCardForRound(
     totalDepth: number,
     codexState: CodexState,
-    isEnding: boolean
+    shouldShowEnding: boolean
   ): UnlockResult;
   
   // 查詢
@@ -642,7 +647,7 @@ function selectCardForRound(
   isEnding: boolean
 ): UnlockResult {
   // 特殊情況：進入 ENDING 狀態
-  if (isEnding) {
+  if (shouldShowEnding) {
     const endingCard = CREATURE_CARDS.find(c => c.isEndingCard)!;
     return unlockCard(endingCard, codexState);
   }
@@ -723,6 +728,7 @@ export interface StoredData {
   version: number; // 資料版本（未來遷移用）
   totalDepth: number;
   completedRounds: number;
+  endingSeen: boolean; // 是否已經看過 ENDING 狀態
   codex: CodexState;
   settings: UserSettings;
   currentState: {
@@ -813,31 +819,40 @@ function restoreFromStorage(storage: Storage, isDemoMode: boolean): void {
   // 復原深度與圖鑑
   depthState.totalDepth = data.totalDepth;
   completedRounds = data.completedRounds;
+  endingSeen = data.endingSeen;
   codexState = data.codex;
   
   // 處理未完成狀態
-  if (data.currentState.state === AppState.FOCUSING) {
-    // 視為放棄：計算保留深度
-    const lastSeenAt = data.currentState.lastSeenAt || data.currentState.roundStartAt!;
-    const focusedTime = Math.min(
-      lastSeenAt - data.currentState.roundStartAt!,
-      data.currentState.selectedDurationMs!
-    );
-    const descent = depthCalculator.calculateDescent(focusedTime);
+  if (data.currentState.state === AppState.FOCUSING || 
+      data.currentState.state === AppState.DISTRACTED) {
+    // 視為放棄：使用 getElapsedFocusedTime 計算保留深度
+    const timerState: TimerState = {
+      roundStartAt: data.currentState.roundStartAt!,
+      selectedDurationMs: data.currentState.selectedDurationMs!,
+      lastSeenAt: data.currentState.lastSeenAt || data.currentState.roundStartAt!,
+      hiddenAt: data.currentState.hiddenAt,
+      distractionPenaltyMs: data.currentState.distractionPenaltyMs,
+      isDemoMode: isDemoMode
+    };
+    
+    const lastSeenAt = timerState.lastSeenAt;
+    const focusedTime = timer.getElapsedFocusedTime(timerState, lastSeenAt);
+    const cappedTime = Math.min(focusedTime, timerState.selectedDurationMs);
+    const descent = depthCalculator.calculateDescent(cappedTime);
     
     depthState.roundDescentDepth = descent;
     depthState = depthCalculator.abandonRound(depthState);
     
-    // 轉換到 IDLE
-    stateMachine.transition({ type: 'ABANDON_ROUND' });
+    // 直接設定狀態為 IDLE（不走 transition）
+    stateMachine.currentState = AppState.IDLE;
   } else if (
     data.currentState.state === AppState.SHORT_BREAK ||
     data.currentState.state === AppState.LONG_BREAK
   ) {
-    // 視為休息完成：轉換到 IDLE
-    stateMachine.transition({ type: 'BREAK_COMPLETE' });
+    // 視為休息完成
+    stateMachine.currentState = AppState.IDLE;
   }
-  // 其他狀態（IDLE、DISTRACTED、ENDING）保持原狀
+  // IDLE、ENDING 保持原狀
 }
 ```
 
@@ -894,7 +909,7 @@ class DemoModeImpl implements DemoMode {
 // 在 UI 中
 function onDemoModeToggle(): void {
   if (!demoMode.canToggle(stateMachine.getState())) {
-    alert('只能在 IDLE 狀態切換演示模式');
+    // 不使用 alert，改為在 UI 中停用按鈕
     return;
   }
   
@@ -923,6 +938,13 @@ function onDemoModeToggle(): void {
 4. 驅動 RAF loop 更新 UI
 5. 定期自動儲存
 
+
+**全域變數**：
+
+```typescript
+let distractedStartAt: number = 0; // DISTRACTED 狀態開始時間
+```
+
 **RAF Loop**：
 
 ```typescript
@@ -930,7 +952,7 @@ function rafLoop(): void {
   const nowMs = Date.now();
   const state = stateMachine.getState();
   
-  if (state === AppState.FOCUSING || state === AppState.DISTRACTED) {
+  if (state === AppState.FOCUSING) {
     // 更新計時與深度
     const focusedTime = timer.getElapsedFocusedTime(timerState, nowMs);
     const remaining = timer.getRemainingTime(timerState, nowMs);
@@ -951,6 +973,15 @@ function rafLoop(): void {
       storage.save(getCurrentData(), demoMode.isEnabled);
       lastSaveTime = nowMs;
     }
+  } else if (state === AppState.DISTRACTED) {
+    // DISTRACTED 狀態自動結束
+    const distractedDuration = nowMs - distractedStartAt;
+    if (distractedDuration >= Config.distractedDurationSec * 1000) {
+      stateMachine.transition({ type: 'DISTRACTION_ANIMATION_COMPLETE' });
+    }
+    
+    // 期間不檢查完成
+    updateUI();
   } else if (state === AppState.SHORT_BREAK || state === AppState.LONG_BREAK) {
     // 休息倒數
     // ... 類似邏輯
@@ -964,36 +995,45 @@ function rafLoop(): void {
 
 ```typescript
 function handleRoundComplete(): void {
-  // 計算是否達目標
-  const reachedTarget = depthCalculator.hasReachedTarget(depthState.totalDepth);
-  
-  // 計算是否長休息
-  const isLongBreak = (completedRounds + 1) % Config.longBreakInterval === 0;
-  
-  // 完成深度計算
+  // 1. 先完成深度計算（commitRound）
   depthState = depthCalculator.commitRound(depthState);
   
-  // 選擇卡片
+  // 2. 再用 commit 後的深度判斷是否達目標
+  const reachedTarget = depthCalculator.hasReachedTarget(depthState.totalDepth);
+  
+  // 3. 判斷是否應該進入 ENDING（第一次到底）
+  const shouldShowEnding = reachedTarget && !endingSeen;
+  
+  // 4. 計算是否長休息（只有非 ENDING 時才判斷）
+  const isLongBreak = !shouldShowEnding && 
+                      (completedRounds + 1) % Config.longBreakInterval === 0;
+  
+  // 5. 選擇卡片
   const unlockResult = codexManager.selectCardForRound(
     depthState.totalDepth,
     codexState,
-    reachedTarget
+    shouldShowEnding
   );
   
-  // 增加完成輪數
+  // 6. 增加完成輪數
   completedRounds += 1;
   
-  // 顯示卡片（UI 邏輯）
+  // 7. 如果進入 ENDING，設定 endingSeen
+  if (shouldShowEnding) {
+    endingSeen = true;
+  }
+  
+  // 8. 顯示卡片（UI 邏輯）
   showCardReveal(unlockResult);
   
-  // 轉換狀態
+  // 9. 轉換狀態
   stateMachine.transition({
     type: 'ROUND_COMPLETE',
-    reachedTarget,
-    isLongBreak: !reachedTarget && isLongBreak
+    shouldShowEnding,
+    isLongBreak: !shouldShowEnding && isLongBreak
   });
   
-  // 儲存
+  // 10. 儲存
   storage.save(getCurrentData(), demoMode.isEnabled);
 }
 ```
