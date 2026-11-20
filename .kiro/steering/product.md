@@ -26,7 +26,7 @@ IDLE → FOCUSING → (DISTRACTED ↔ FOCUSING) → SHORT_BREAK / LONG_BREAK →
 - Main scene visuals + 5 depth zones with smooth transitions
 - Distraction event (Page Visibility API) + low-key manual test trigger
 - Completion reveal + codex (silhouette + "?" for locked cards)
-- 10,900 m ending
+- 10,900 m ending: searchlight finds supergiant amphipods (Hirondellea gigas), then the final signal. Snailfish is the hadal-zone card, not the ending (fish can't live that deep).
 - Demo mode (×60) that does not pollute real progress
 
 ## Nice-to-have (only if time)
@@ -39,8 +39,8 @@ Shipwreck interior, sound (muted by default), extra horror hints, more cards.
 | Distraction rise | 20% of this round's descent per event, max 50% per round |
 | Short break | 5 min (skippable) |
 | Long break | 15 min (skippable), every 4 rounds |
-| Companion | 1 |
-| Codex | TBD (see open questions) — last card is always the Mariana snailfish, ending only |
+| Companion | 1 small Dumbo octopus (Grimpoteuthis) |
+| Codex | 6 real species, one per zone + ending card (see docs/codex.md). Facts must be real and sourced. |
 | Duplicates | Zone full → duplicate record, no new slot |
 | Oxygen | Drains slowly while focusing, refills on break; never forces a stop |
 
