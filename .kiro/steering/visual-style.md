@@ -9,6 +9,14 @@ Final direction: **Expressionism + minimal negative space.**
 - The bell is small and lonely. Its warm glow (with the companion inside) is the only warm colour on screen.
 - A resident eye: small, faint, blurry, far away in the top-right. A hint, not a subject.
 
+## Approved reference (2026-11-19) — match this look
+- Images: `docs/reference/scene-v1.png` (full scene) and `docs/reference/bell-closeup-v1.png` (bell close-up).
+- Generator: `art/scene_preview.py` (Python Pillow + numpy). Reuse and extend this script for all scene art; keep its shapes and palette so the look stays consistent.
+- Feel: hand-drawn texture but refined. Jittered, fuzzy edges everywhere (bell, rim, companion). Not smooth vector shapes, not blurry: render at 2x and keep edges crisp; blur only light/glow layers.
+- Diving bell (1930s bathysphere): dark iron sphere, a ring of 16 bolts around one big porthole, two riveted horizontal seams + one vertical seam, rust streaks running down, top hatch + lifting ring + wavy cable, oxygen tank strapped on the left, searchlight housing lower right that casts the light cone.
+- Companion: small Dumbo octopus seen through the porthole. Fuzzy-edged peach-pink round mantle with a soft highlight, two darker ear-fins, a short, wide, vertically narrow webbed skirt below, two black dot eyes with white catchlights, pink blush. Same drawing in every state; states only change eye shape, fin angle and a small bob (normal / alert / sleeping).
+- Giant eye hint: huge, very faint, blurred, in the dark to the right of the bell.
+
 ## Main page ≠ poster
 - Poster/cover: still, empty, the one AI-generated image.
 - Main page: same base but alive — big soft cold-white glowing timer, the warm glow, slow constant motion (swaying light cone, rising bubbles, sonar sweep, rare eye blink).
