@@ -233,9 +233,10 @@ focus-core 是深海番茄鐘 web app 的核心計時與狀態管理模組。此
 10. WHEN 在 FOCUSING 狀態，THE System SHALL 顯示放棄按鈕
 11. WHEN 在 SHORT_BREAK 或 LONG_BREAK 狀態，THE System SHALL 顯示跳過按鈕
 12. WHEN 在 ENDING 狀態，THE System SHALL 顯示 "dive again" 按鈕
-13. THE System SHALL 提供低調的「測試分心」按鈕手動觸發 Distraction_Event
-14. THE System SHALL 提供 Demo_Mode 切換開關（只在 IDLE 狀態可用）
-15. THE System SHALL 提供清除資料按鈕（需二次確認）
+13. WHEN 在 IDLE 狀態且 Total_Depth 曾達到 10900m，THE System SHALL 顯示低調的 "dive again" 按鈕
+14. THE System SHALL 提供低調的「測試分心」按鈕手動觸發 Distraction_Event
+15. THE System SHALL 提供 Demo_Mode 切換開關（只在 IDLE 狀態可用）
+16. THE System SHALL 提供清除資料按鈕（需二次確認）
 
 ### 需求 13：單元測試覆蓋
 
