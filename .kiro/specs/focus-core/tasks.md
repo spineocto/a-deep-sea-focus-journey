@@ -26,7 +26,7 @@
   - **確認 .kiro 目錄仍然存在且未被修改**
   - _需求: 1.1, 1.2, 1.3, 1.4, 1.5_
 
-- [ ] 2. 實作 Config 模組
+- [x] 2. 實作 Config 模組
   - 建立 `src/config.ts`
   - 定義 Zone 型別
   - 匯出所有設定常數（descentSpeedPerMinute、durationOptions、distractionThreshold 等）
@@ -41,7 +41,7 @@
   - 測試 zones 邊界值（0、200、1000、4000、6000）
   - _需求: 2.1-2.13_
 
-- [ ] 3. 實作 State Machine 模組
+- [x] 3. 實作 State Machine 模組
   - 建立 `src/state-machine.ts`
   - 定義 AppState 列舉（IDLE、FOCUSING、DISTRACTED、SHORT_BREAK、LONG_BREAK、ENDING）
   - 定義 StateTransitionEvent 型別（使用 discriminated union）
@@ -53,7 +53,7 @@
   - 確保非法轉換回傳 `{ success: false, error: '...' }`
   - _需求: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 3.10, 3.11, 3.12, 3.13_
 
-- [ ] 3.1 撰寫 State Machine 單元測試
+- [x] 3.1 撰寫 State Machine 單元測試
   - 建立 `src/__tests__/state-machine.test.ts`
   - 測試所有合法狀態轉換（IDLE → FOCUSING、FOCUSING → DISTRACTED 等）
   - 測試所有非法狀態轉換回傳 false
@@ -69,7 +69,7 @@
   - 驗證 canTransition() 與 transition() 結果一致性
   - _需求: 3.12, 3.13_
 
-- [ ] 4. 實作 Timer 模組
+- [x] 4. 實作 Timer 模組
   - 建立 `src/timer.ts`
   - 定義 TimerState 介面
   - 定義 Timer 介面
@@ -84,7 +84,7 @@
   - 確保專注時間永遠非負（使用 Math.max(0, ...)）
   - _需求: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7_
 
-- [ ] 4.1 撰寫 Timer 模組單元測試
+- [x] 4.1 撰寫 Timer 模組單元測試
   - 建立 `src/__tests__/timer.test.ts`
   - 測試時間戳計算準確性（正常模式）
   - 測試 Demo 模式時間加速（60 倍）
@@ -106,7 +106,7 @@
   - 驗證任何 timer state 的 elapsed focused time >= 0
   - _需求: 4.2, 4.4_
 
-- [ ] 5. 實作 Depth Calculator 模組
+- [x] 5. 實作 Depth Calculator 模組
   - 建立 `src/depth-calculator.ts`
   - 定義 DepthState 介面
   - 定義 DepthCalculator 介面
@@ -123,7 +123,7 @@
   - 確保 totalDepth 不低於 roundStartDepth
   - _需求: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7_
 
-- [ ] 5.1 撰寫 Depth Calculator 單元測試
+- [x] 5.1 撰寫 Depth Calculator 單元測試
   - 建立 `src/__tests__/depth-calculator.test.ts`
   - 測試深度計算公式（12 m/min）
   - 測試上浮懲罰計算（20% 單次、50% 上限）
@@ -148,7 +148,7 @@
   - 驗證累積 roundRisePenalty <= roundDescentDepth * 50%
   - _需求: 5.4, 5.6, 6.9, 9.2_
 
-- [ ] 6. 實作 Distraction Detector 模組
+- [x] 6. 實作 Distraction Detector 模組
   - 建立 `src/distraction-detector.ts`
   - 定義 DistractionEvent 介面
   - 定義 DistractionDetector 介面
@@ -158,7 +158,7 @@
   - 確保隱藏時長 > 5000ms 時 triggered: true
   - _需求: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 6.8_
 
-- [ ] 6.1 撰寫 Distraction Detector 單元測試
+- [x] 6.1 撰寫 Distraction Detector 單元測試
   - 建立 `src/__tests__/distraction-detector.test.ts`
   - 測試 5 秒閾值判斷（4999ms 不觸發、5001ms 觸發）
   - 測試邊界值（0ms、5000ms、5001ms）
@@ -174,7 +174,7 @@
   - 驗證 hiddenDuration <= 5000ms 時 triggered: false 且 shouldExcludeTime: false
   - _需求: 6.5, 6.7_
 
-- [ ] 7. 實作 Codex Manager 模組
+- [x] 7. 實作 Codex Manager 模組
   - 建立 `src/codex-manager.ts`
   - 定義 CreatureCard 介面
   - 定義 UnlockedCard 介面
@@ -191,7 +191,7 @@
   - 確保一般卡片選擇時排除 isEndingCard: true 的卡片
   - _需求: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7, 8.8, 8.9, 8.10_
 
-- [ ] 7.1 撰寫 Codex Manager 單元測試
+- [x] 7.1 撰寫 Codex Manager 單元測試
   - 建立 `src/__tests__/codex-manager.test.ts`
   - 測試第一輪獲得 Moon jellyfish
   - 測試最淺優先選擇邏輯（跨多個 Zone）
@@ -215,7 +215,7 @@
   - 驗證 Supergiant amphipod 只在 shouldShowEnding: true 時被選中
   - _需求: 8.3, 8.4, 8.9, 8.10_
 
-- [ ] 8. 實作 Storage 模組
+- [x] 8. 實作 Storage 模組
   - 建立 `src/storage.ts`
   - 定義 StoredData 介面
   - 定義 UserSettings 介面
@@ -229,7 +229,7 @@
   - 加入錯誤處理（localStorage 讀寫失敗時 console.error）
   - _需求: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6, 10.7, 10.8, 10.9, 10.12, 10.13, 10.14_
 
-- [ ] 8.1 撰寫 Storage 模組單元測試
+- [x] 8.1 撰寫 Storage 模組單元測試
   - 建立 `src/__tests__/storage.test.ts`
   - 使用 mock localStorage（例如 vitest 的 vi.stubGlobal）
   - 測試儲存與載入往返
@@ -248,7 +248,7 @@
   - 驗證 save() 後 load() 回傳等價的資料
   - _需求: 14.6_
 
-- [ ] 9. 實作 Demo Mode 模組
+- [x] 9. 實作 Demo Mode 模組
   - 建立 `src/demo-mode.ts`
   - 定義 DemoMode 介面
   - 實作 DemoMode 類別
@@ -274,7 +274,7 @@
   - 驗證正常模式進度未受影響
   - _需求: 11.8_
 
-- [ ] 10. Checkpoint - 確保所有模組測試通過
+- [-] 10. Checkpoint - 確保所有模組測試通過
   - 執行 `npm run test` 確保所有單元測試與屬性測試通過
   - 檢查測試覆蓋率（目標: 核心模組 >= 90%）
   - 若有失敗測試，修正後再繼續

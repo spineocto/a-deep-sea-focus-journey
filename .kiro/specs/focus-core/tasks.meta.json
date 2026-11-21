@@ -12,6 +12,171 @@
         "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
         "timestamp": 1795192535997
       }
+    ],
+    "2. 實作 Config 模組": [
+      {
+        "executionId": "38bcb6e7-0505-4a68-9e71-19b8e3420f74",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795195219920
+      },
+      {
+        "executionId": "38bcb6e7-0505-4a68-9e71-19b8e3420f74",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795195752899
+      }
+    ],
+    "3. 實作 State Machine 模組": [
+      {
+        "executionId": "38bcb6e7-0505-4a68-9e71-19b8e3420f74",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795195756968
+      },
+      {
+        "executionId": "38bcb6e7-0505-4a68-9e71-19b8e3420f74",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795196529774
+      }
+    ],
+    "3.1 撰寫 State Machine 單元測試": [
+      {
+        "executionId": "38bcb6e7-0505-4a68-9e71-19b8e3420f74",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795196534011
+      },
+      {
+        "executionId": "38bcb6e7-0505-4a68-9e71-19b8e3420f74",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795197328108
+      }
+    ],
+    "4. 實作 Timer 模組": [
+      {
+        "executionId": "38bcb6e7-0505-4a68-9e71-19b8e3420f74",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795197332108
+      },
+      {
+        "executionId": "38bcb6e7-0505-4a68-9e71-19b8e3420f74",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795198984301
+      }
+    ],
+    "4.1 撰寫 Timer 模組單元測試": [
+      {
+        "executionId": "38bcb6e7-0505-4a68-9e71-19b8e3420f74",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795198988521
+      },
+      {
+        "executionId": "38bcb6e7-0505-4a68-9e71-19b8e3420f74",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795203110680
+      }
+    ],
+    "5. 實作 Depth Calculator 模組": [
+      {
+        "executionId": "38bcb6e7-0505-4a68-9e71-19b8e3420f74",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795203114923
+      },
+      {
+        "executionId": "38bcb6e7-0505-4a68-9e71-19b8e3420f74",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795203330879
+      }
+    ],
+    "5.1 撰寫 Depth Calculator 單元測試": [
+      {
+        "executionId": "38bcb6e7-0505-4a68-9e71-19b8e3420f74",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795203334891
+      },
+      {
+        "executionId": "38bcb6e7-0505-4a68-9e71-19b8e3420f74",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795203613077
+      }
+    ],
+    "6. 實作 Distraction Detector 模組": [
+      {
+        "executionId": "38bcb6e7-0505-4a68-9e71-19b8e3420f74",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795203617078
+      },
+      {
+        "executionId": "38bcb6e7-0505-4a68-9e71-19b8e3420f74",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795204306944
+      }
+    ],
+    "6.1 撰寫 Distraction Detector 單元測試": [
+      {
+        "executionId": "38bcb6e7-0505-4a68-9e71-19b8e3420f74",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795204311047
+      },
+      {
+        "executionId": "38bcb6e7-0505-4a68-9e71-19b8e3420f74",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795204315740
+      }
+    ],
+    "7. 實作 Codex Manager 模組": [
+      {
+        "executionId": "38bcb6e7-0505-4a68-9e71-19b8e3420f74",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795204319633
+      },
+      {
+        "executionId": "38bcb6e7-0505-4a68-9e71-19b8e3420f74",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795273347295
+      }
+    ],
+    "7.1 撰寫 Codex Manager 單元測試": [
+      {
+        "executionId": "38bcb6e7-0505-4a68-9e71-19b8e3420f74",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795273351283
+      }
+    ],
+    "8. 實作 Storage 模組": [
+      {
+        "executionId": "38bcb6e7-0505-4a68-9e71-19b8e3420f74",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795273355097
+      },
+      {
+        "executionId": "38bcb6e7-0505-4a68-9e71-19b8e3420f74",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795274958995
+      }
+    ],
+    "8.1 撰寫 Storage 模組單元測試": [
+      {
+        "executionId": "38bcb6e7-0505-4a68-9e71-19b8e3420f74",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795274962909
+      }
+    ],
+    "9. 實作 Demo Mode 模組": [
+      {
+        "executionId": "38bcb6e7-0505-4a68-9e71-19b8e3420f74",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795274966637
+      },
+      {
+        "executionId": "38bcb6e7-0505-4a68-9e71-19b8e3420f74",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795276057629
+      }
+    ],
+    "10. Checkpoint - 確保所有模組測試通過": [
+      {
+        "executionId": "38bcb6e7-0505-4a68-9e71-19b8e3420f74",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795276061797
+      }
     ]
   }
 }
