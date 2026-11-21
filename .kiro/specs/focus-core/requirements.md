@@ -118,6 +118,7 @@ focus-core 是深海番茄鐘 web app 的核心計時與狀態管理模組。此
 3. WHEN 在 FOCUSING 狀態且分頁從隱藏變為顯示，THE System SHALL 計算隱藏時長（當前時間 - hiddenAt）
 4. WHEN 隱藏時長超過 distractionThreshold（5 秒），THE System SHALL 觸發一次 Distraction_Event 並轉換到 DISTRACTED 狀態
 5. WHEN 隱藏時長未超過 distractionThreshold（5 秒），THE System SHALL 不觸發 Distraction_Event 且繼續 FOCUSING
+5.1. NOTE: 在 Demo_Mode 中，分心判斷使用真實時間（hiddenRealMs），專注時間扣除使用加速後的時間（hiddenDuration）
 6. WHEN 隱藏時長超過 distractionThreshold，THE System SHALL 將整段隱藏時間（從 hiddenAt 開始）排除在 Focused_Time 之外
 7. WHEN 隱藏時長未超過 distractionThreshold，THE System SHALL 將隱藏時間計入 Focused_Time
 8. WHEN 觸發 Distraction_Event，THE System SHALL 計算上浮深度為當下本輪已下沉深度（Descent_Depth）的 distractionRisePercentage（20%）

@@ -64,10 +64,11 @@ describe('Timer Module - Basic Functionality', () => {
     state.hiddenAt = hiddenAt;
     const nowMs = hiddenAt + 10 * 1000; // 10 秒後
     
-    const { state: newState, hiddenDuration } = timer.markVisible(state, nowMs);
+    const { state: newState, hiddenRealMs, hiddenDuration } = timer.markVisible(state, nowMs);
     
     expect(newState.hiddenAt).toBe(null);
-    expect(hiddenDuration).toBe(10 * 1000); // 10 秒
+    expect(hiddenRealMs).toBe(10 * 1000); // 10 秒真實時間
+    expect(hiddenDuration).toBe(10 * 1000); // 10 秒（非 Demo 模式，倍率 = 1）
   });
 
   it('should exclude hidden time from elapsed focused time', () => {
@@ -146,9 +147,10 @@ describe('Timer Module - Basic Functionality', () => {
     state.hiddenAt = hiddenAt;
     const nowMs = hiddenAt + 1000; // 1 秒後
     
-    const { hiddenDuration } = timer.markVisible(state, nowMs);
+    const { hiddenRealMs, hiddenDuration } = timer.markVisible(state, nowMs);
     
-    expect(hiddenDuration).toBe(1000 * 60); // 1 秒 × 60 = 60 秒
+    expect(hiddenRealMs).toBe(1000); // 1 秒真實時間
+    expect(hiddenDuration).toBe(1000 * 60); // 1 秒 × 60 = 60 秒加速後
   });
 
   it('should handle markVisible when hiddenAt is null', () => {
@@ -156,9 +158,10 @@ describe('Timer Module - Basic Functionality', () => {
     state.hiddenAt = null;
     const nowMs = Date.now();
     
-    const { state: newState, hiddenDuration } = timer.markVisible(state, nowMs);
+    const { state: newState, hiddenRealMs, hiddenDuration } = timer.markVisible(state, nowMs);
     
     expect(newState.hiddenAt).toBe(null);
+    expect(hiddenRealMs).toBe(0);
     expect(hiddenDuration).toBe(0);
   });
 });

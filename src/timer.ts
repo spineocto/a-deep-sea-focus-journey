@@ -1,7 +1,7 @@
 /**
  * Timer 模組
  * 
- * 計算已流逝時間與剩餘時間，使用時間戳驅動的計時機制確保準確性。
+ * 計算已流逝時間與剩餘時間,使用時間戳驅動的計時機制確保準確性。
  * 支援分心懲罰、Demo 模式加速、以及 lastSeenAt 追蹤。
  */
 
@@ -26,7 +26,7 @@ export interface Timer {
   
   // 分心處理
   markHidden(state: TimerState, nowMs: number): TimerState;
-  markVisible(state: TimerState, nowMs: number): { state: TimerState; hiddenDuration: number };
+  markVisible(state: TimerState, nowMs: number): { state: TimerState; hiddenRealMs: number; hiddenDuration: number };
   applyDistractionPenalty(state: TimerState, penaltyMs: number): TimerState;
   
   // lastSeenAt 更新
@@ -105,22 +105,24 @@ class TimerImpl implements Timer {
    * 標記分頁顯示
    * @param state TimerState
    * @param nowMs 當前時間戳 (ms)
-   * @returns 新的 TimerState 與隱藏時長
+   * @returns 新的 TimerState、真實隱藏時長、以及加速後的隱藏時長
    */
-  markVisible(state: TimerState, nowMs: number): { state: TimerState; hiddenDuration: number } {
+  markVisible(state: TimerState, nowMs: number): { state: TimerState; hiddenRealMs: number; hiddenDuration: number } {
     if (state.hiddenAt === null) {
       // 沒有隱藏記錄，回傳 0
-      return { state, hiddenDuration: 0 };
+      return { state, hiddenRealMs: 0, hiddenDuration: 0 };
     }
     
+    const hiddenRealMs = nowMs - state.hiddenAt; // 真實時間（未加速）
     const multiplier = state.isDemoMode ? Config.demoModeMultiplier : 1;
-    const hiddenDuration = (nowMs - state.hiddenAt) * multiplier;
+    const hiddenDuration = hiddenRealMs * multiplier; // 加速後的時間
     
     return {
       state: {
         ...state,
         hiddenAt: null
       },
+      hiddenRealMs,
       hiddenDuration
     };
   }

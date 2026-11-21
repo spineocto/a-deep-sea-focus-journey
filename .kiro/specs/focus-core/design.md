@@ -240,7 +240,7 @@ export interface Timer {
   
   // 分心處理
   markHidden(state: TimerState, nowMs: number): TimerState;
-  markVisible(state: TimerState, nowMs: number): { state: TimerState; hiddenDuration: number };
+  markVisible(state: TimerState, nowMs: number): { state: TimerState; hiddenRealMs: number; hiddenDuration: number };
   applyDistractionPenalty(state: TimerState, penaltyMs: number): TimerState;
   
   // lastSeenAt 更新
@@ -280,9 +280,10 @@ function getRemainingTime(state: TimerState, nowMs: number): number {
 **分心處理流程**：
 
 1. **分頁隱藏時**：`markHidden(state, nowMs)` 記錄 `hiddenAt = nowMs`
-2. **分頁顯示時**：`markVisible(state, nowMs)` 計算 `hiddenDuration = (nowMs - hiddenAt) * multiplier`
+2. **分頁顯示時**：`markVisible(state, nowMs)` 計算 `hiddenRealMs = (nowMs - hiddenAt)`（真實時間）和 `hiddenDuration = hiddenRealMs * multiplier`（加速後時間）
 3. **判斷是否觸發分心**：
-   - 若 `hiddenDuration > Config.distractionThreshold * 1000`：觸發分心事件
+   - 若 `hiddenRealMs > Config.distractionThreshold * 1000`：觸發分心事件（使用真實時間判斷，非加速時間）
+   - 扣除的專注時間使用 `hiddenDuration`（加速後時間）
    - 若 `hiddenDuration <= Config.distractionThreshold * 1000`：不觸發，繼續專注
 4. **計算懲罰**：若觸發分心，將整段隱藏時間加入 `distractionPenaltyMs`
 
@@ -480,7 +481,7 @@ document.addEventListener('visibilitychange', () => {
   } else {
     // 分頁顯示：判斷是否觸發分心
     if (stateMachine.getState() === AppState.FOCUSING) {
-      const { state: newTimerState, hiddenDuration } = timer.markVisible(
+      const { state: newTimerState, hiddenRealMs, hiddenDuration } = timer.markVisible(
         timerState,
         Date.now()
       );
@@ -675,19 +676,19 @@ function selectCardForRound(
   }
   
   // 4. 所有已達 Zone 的卡片都已解鎖 → 重複記錄
-  // 選擇已解鎖中最淺的卡片
+  // 選擇已解鎖中最深的卡片（代表當前所在海域）
   const unlockedReachableCards = normalCards.filter(c => {
     const cardZone = Config.zones.find(z => z.name === c.zone)!;
     return totalDepth >= cardZone.min && unlockedIds.has(c.id);
   });
   
   if (unlockedReachableCards.length > 0) {
-    const shallowestUnlocked = unlockedReachableCards.reduce((prev, curr) => {
+    const deepestUnlocked = unlockedReachableCards.reduce((prev, curr) => {
       const prevZone = Config.zones.find(z => z.name === prev.zone)!;
       const currZone = Config.zones.find(z => z.name === curr.zone)!;
-      return prevZone.min < currZone.min ? prev : curr;
+      return prevZone.min > currZone.min ? prev : curr; // 改為選擇最深的
     });
-    return markDuplicate(shallowestUnlocked, codexState);
+    return markDuplicate(deepestUnlocked, codexState);
   }
   
   // 理論上不會到這裡（第一輪一定可以拿到 Moon jellyfish）
@@ -1290,7 +1291,7 @@ export interface AppGlobalState {
 
 **單元測試**：
 - 測試第一輪獲得 Moon jellyfish
-- 測試最淺優先選擇
+- 測試最淺優先選擇（新卡片）、最深優先選擇（重複卡片）
 - 測試深度未達時不發卡
 - 測試所有已達 Zone 已解鎖時記錄重複
 - 測試 Supergiant amphipod 只在 ENDING 時解鎖

@@ -287,8 +287,8 @@ describe('Codex Manager', () => {
       // Even at 10900m with all normal cards unlocked
       const result = codexManager.selectCardForRound(10900, codexState, false);
       
-      // Should return a duplicate of shallowest reachable card (Moon jellyfish)
-      expect(result.card.id).toBe('moon-jellyfish');
+      // Should return a duplicate of deepest reachable card (Mariana snailfish)
+      expect(result.card.id).toBe('mariana-snailfish');
       expect(result.isDuplicate).toBe(true);
       
       // Should NEVER return ending card
@@ -364,3 +364,66 @@ describe('Codex Manager', () => {
     });
   });
 });
+
+  // Bug fix test: duplicate cards should return deepest zone card
+  describe('Duplicate Card Selection - Deepest Zone', () => {
+    it('should return deepest zone card when all reached zones are unlocked', () => {
+      // Unlock all cards up to Midnight zone
+      const codexState: CodexState = {
+        unlockedCards: [
+          { cardId: 'moon-jellyfish', unlockedAt: 1000, obtainedCount: 1 },
+          { cardId: 'barreleye', unlockedAt: 2000, obtainedCount: 1 },
+          { cardId: 'humpback-anglerfish', unlockedAt: 3000, obtainedCount: 1 }
+        ]
+      };
+
+      // Now at depth 2000m (reached Midnight zone)
+      const result = codexManager.selectCardForRound(2000, codexState, false);
+
+      // Should return humpback-anglerfish (Midnight zone, deepest reached)
+      expect(result.card.id).toBe('humpback-anglerfish');
+      expect(result.card.zone).toBe('Midnight');
+      expect(result.isDuplicate).toBe(true);
+      expect(codexState.unlockedCards.find(u => u.cardId === 'humpback-anglerfish')?.obtainedCount).toBe(2);
+    });
+
+    it('should return Hadal card when all 5 normal cards are unlocked and depth is 10000m', () => {
+      // Unlock all 5 normal cards
+      const codexState: CodexState = {
+        unlockedCards: [
+          { cardId: 'moon-jellyfish', unlockedAt: 1000, obtainedCount: 1 },
+          { cardId: 'barreleye', unlockedAt: 2000, obtainedCount: 1 },
+          { cardId: 'humpback-anglerfish', unlockedAt: 3000, obtainedCount: 1 },
+          { cardId: 'dumbo-octopus', unlockedAt: 4000, obtainedCount: 1 },
+          { cardId: 'mariana-snailfish', unlockedAt: 5000, obtainedCount: 1 }
+        ]
+      };
+
+      // Now at depth 10000m (Hadal zone)
+      const result = codexManager.selectCardForRound(10000, codexState, false);
+
+      // Should return mariana-snailfish (Hadal zone, deepest reachable non-ending card)
+      expect(result.card.id).toBe('mariana-snailfish');
+      expect(result.card.zone).toBe('Hadal');
+      expect(result.isDuplicate).toBe(true);
+      expect(codexState.unlockedCards.find(u => u.cardId === 'mariana-snailfish')?.obtainedCount).toBe(2);
+    });
+
+    it('should return Twilight card when only Sunlit and Twilight are unlocked at 800m', () => {
+      const codexState: CodexState = {
+        unlockedCards: [
+          { cardId: 'moon-jellyfish', unlockedAt: 1000, obtainedCount: 1 },
+          { cardId: 'barreleye', unlockedAt: 2000, obtainedCount: 1 }
+        ]
+      };
+
+      // At depth 800m (reached Twilight zone 200-1000m, Midnight not yet reached 1000m+)
+      const result = codexManager.selectCardForRound(800, codexState, false);
+
+      // Should return barreleye (Twilight zone, deepest reached)
+      expect(result.card.id).toBe('barreleye');
+      expect(result.card.zone).toBe('Twilight');
+      expect(result.isDuplicate).toBe(true);
+      expect(codexState.unlockedCards.find(u => u.cardId === 'barreleye')?.obtainedCount).toBe(2);
+    });
+  });

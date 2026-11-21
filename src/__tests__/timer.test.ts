@@ -341,6 +341,7 @@ describe('Timer Module', () => {
       const result = timer.markVisible(state, visibleTime);
 
       expect(result.state.hiddenAt).toBeNull();
+      expect(result.hiddenRealMs).toBe(10000);
       expect(result.hiddenDuration).toBe(10000); // 20000 - 10000
     });
 
@@ -358,6 +359,7 @@ describe('Timer Module', () => {
       const result = timer.markVisible(state, nowMs + 10000);
 
       expect(result.state.hiddenAt).toBeNull();
+      expect(result.hiddenRealMs).toBe(0);
       expect(result.hiddenDuration).toBe(0);
     });
 
@@ -376,7 +378,8 @@ describe('Timer Module', () => {
       const result = timer.markVisible(state, visibleTime);
 
       // 10 seconds * 60 = 600 seconds = 600000 ms
-      expect(result.hiddenDuration).toBe(600000);
+      expect(result.hiddenRealMs).toBe(10000); // Real time: 10 seconds
+      expect(result.hiddenDuration).toBe(600000); // Accelerated: 10s * 60
     });
 
     it('should not modify other state properties', () => {
@@ -676,7 +679,7 @@ describe('Timer Module', () => {
       state = timer.markHidden(state, state.roundStartAt + 5000);
       
       // User returns at 10s (5s hidden, but only 0.083s in demo time = 5s)
-      const { state: visibleState, hiddenDuration } = timer.markVisible(
+      const { state: visibleState, hiddenRealMs, hiddenDuration } = timer.markVisible(
         state,
         state.roundStartAt + 10000
       );
@@ -716,7 +719,7 @@ describe('Timer Module', () => {
       
       // First distraction: hide for 10 seconds
       state = timer.markHidden(state, nowMs + 60000); // At 1 min
-      const { state: visible1, hiddenDuration: hidden1 } = timer.markVisible(
+      const { state: visible1, hiddenRealMs, hiddenDuration: hidden1 } = timer.markVisible(
         state,
         nowMs + 70000
       ); // At 1 min 10s
@@ -725,7 +728,7 @@ describe('Timer Module', () => {
       
       // Second distraction: hide for 15 seconds
       state = timer.markHidden(state, nowMs + 180000); // At 3 min
-      const { state: visible2, hiddenDuration: hidden2 } = timer.markVisible(
+      const { state: visible2, hiddenRealMs: hiddenRealMs2, hiddenDuration: hidden2 } = timer.markVisible(
         state,
         nowMs + 195000
       ); // At 3 min 15s
@@ -808,7 +811,7 @@ describe('Timer Module', () => {
       
       // Hide and show quickly (< 1 second)
       state = timer.markHidden(state, nowMs + 1000);
-      const { state: newState, hiddenDuration } = timer.markVisible(state, nowMs + 1500);
+      const { state: newState, hiddenRealMs, hiddenDuration } = timer.markVisible(state, nowMs + 1500);
       
       expect(hiddenDuration).toBe(500);
       expect(newState.hiddenAt).toBeNull();

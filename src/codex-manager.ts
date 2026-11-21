@@ -190,15 +190,15 @@ class CodexManagerImpl implements CodexManager {
     }
 
     // 4. 所有已達 Zone 的卡片都已解鎖 → 記錄重複獲得
-    // 從已解鎖的卡片中選擇已達深度的最淺卡片
+    // 從已解鎖的卡片中選擇已達深度的最深卡片（修正：改為最深）
     const unlockedReachableCards = normalCards.filter(c => {
       const cardZone = Config.zones.find(z => z.name === c.zone);
       return cardZone ? totalDepth >= cardZone.min && unlockedIds.has(c.id) : false;
     });
 
     if (unlockedReachableCards.length > 0) {
-      const shallowestUnlocked = this.findShallowestCard(unlockedReachableCards);
-      return this.unlockOrMarkDuplicate(shallowestUnlocked, codexState);
+      const deepestUnlocked = this.findDeepestCard(unlockedReachableCards);
+      return this.unlockOrMarkDuplicate(deepestUnlocked, codexState);
     }
 
     // 理論上不會到這裡（第一輪一定可以拿到 Moon jellyfish）
@@ -232,6 +232,22 @@ class CodexManagerImpl implements CodexManager {
       }
       
       return prevZone.min < currZone.min ? prev : curr;
+    });
+  }
+
+  /**
+   * 找出陣列中最深的卡片（zone 最小值最大）
+   */
+  private findDeepestCard(cards: CreatureCard[]): CreatureCard {
+    return cards.reduce((prev, curr) => {
+      const prevZone = Config.zones.find(z => z.name === prev.zone);
+      const currZone = Config.zones.find(z => z.name === curr.zone);
+      
+      if (!prevZone || !currZone) {
+        return prev;
+      }
+      
+      return prevZone.min > currZone.min ? prev : curr;
     });
   }
 

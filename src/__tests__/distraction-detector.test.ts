@@ -168,3 +168,28 @@ describe('DistractionDetector', () => {
     });
   });
 });
+
+  // Demo Mode specific tests for bug fix
+  describe('Demo Mode - Real Time Threshold', () => {
+    it('should not trigger distraction for 3 seconds real time in demo mode', () => {
+      // In demo mode: 3 seconds real time = 180 seconds accelerated
+      // But distraction check should use real time (3s < 5s threshold)
+      const realTimeMs = 3000;
+      const result = distractionDetector.checkDistraction(realTimeMs);
+
+      expect(result.triggered).toBe(false);
+      expect(result.shouldExcludeTime).toBe(false);
+      expect(result.hiddenDuration).toBe(realTimeMs);
+    });
+
+    it('should trigger distraction for 6 seconds real time in demo mode', () => {
+      // In demo mode: 6 seconds real time = 360 seconds accelerated
+      // Distraction check should use real time (6s > 5s threshold)
+      const realTimeMs = 6000;
+      const result = distractionDetector.checkDistraction(realTimeMs);
+
+      expect(result.triggered).toBe(true);
+      expect(result.shouldExcludeTime).toBe(true);
+      expect(result.hiddenDuration).toBe(realTimeMs);
+    });
+  });
