@@ -9,3 +9,4 @@
 - Art pipeline: Python (Pillow + numpy) pre-renders the five zone backgrounds into `art/out/`; scripts live in `art/` with all tunable values (jitter, eye opacity/size, warm glow, stroke density, grain) as constants at the top. The web page only adds light, motion, fog and transitions (CSS/Canvas). The poster/cover is the only AI-generated image.
 - Images: compressed modern formats; only load what the opening needs; lazy-load the rest.
 - Tests: unit tests for timer, depth math, state machine, distraction deduction; property-based tests where useful.
+- Terminal: the workspace root is already the project root. Run each command on its own (e.g. `npm test`, `npx vitest run`, `git status`). Never prefix with `cd` and never chain with `&&`, `;` or `|`, so the user can save an "Always allow" rule for it. Use `npx vitest run` (not watch mode) for tests.
