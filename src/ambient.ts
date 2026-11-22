@@ -42,8 +42,8 @@ export const AMBIENT_CONFIG = {
   // Light cone sway: period (ms) and max angle (deg).
   swayPeriodMs: 14000,
   swayDegrees: 2.5,
-  // Light cone opacity per zone (Sunlit -> Hadal): fades with depth.
-  lightOpacity: [0.5, 0.35, 0.22, 0.14, 0.08],
+  // Light cone opacity per zone (Sunlit -> Hadal): the sun is gone by zone 3.
+  lightOpacity: [0.5, 0.35, 0.04, 0.05, 0],
   // Breathing glow on the timer: one full breath per period.
   breathPeriodMs: 5200,
   // Sonar: one expanding ring per interval, centred where the bell sits.
@@ -251,6 +251,8 @@ export function createAmbientLayer(): AmbientLayer {
   const snowMid = createParticles(55, 19);
   const snowNear = createParticles(28, 41);
   const bubbles = createParticles(AMBIENT_CONFIG.bubbleCount, 21);
+  // Zone 3 only: drifting bioluminescent motes (faded teal), the only light.
+  const motes = createParticles(70, 303);
 
   function prefersReducedMotion(): boolean {
     return (
@@ -326,6 +328,7 @@ export function createAmbientLayer(): AmbientLayer {
     nowMs: number,
     w: number,
     h: number,
+    moteWeight = 0,
   ): void {
     if (!ctx || !canvas) return;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -344,7 +347,8 @@ export function createAmbientLayer(): AmbientLayer {
       { field: snowNear, px: PARALLAX[2] ?? 1.15, r: 1.5, alpha: 0.5 },
     ];
     // Fade particles out a touch in the deep where the water is near-black.
-    const depthFade = 1 - Math.min(0.45, zoneIdx * 0.11);
+    // The abyssal plain (zone 4) is nearly still: very little snow.
+    const depthFade = (1 - Math.min(0.45, zoneIdx * 0.11)) * (zoneIdx === 3 ? 0.45 : 1);
     for (const layer of layers) {
       ctx.fillStyle = `rgba(200, 215, 225, ${(layer.alpha * depthFade).toFixed(3)})`;
       const baseDrift = tSec * AMBIENT_CONFIG.snowFallSpeed * layer.px;
@@ -356,6 +360,25 @@ export function createAmbientLayer(): AmbientLayer {
         const x = particle.x + Math.sin(tSec * 0.25 + particle.phase) * particle.sway;
         ctx.beginPath();
         ctx.arc(x * w, y * h, particle.r * layer.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // Zone 3: scattered glowing motes that drift and pulse, faded teal.
+    if (moteWeight > 0.01) {
+      for (const m of motes) {
+        const tw = 0.5 + 0.5 * Math.sin(tSec * (0.5 + m.speed * 0.5) + m.phase * 3);
+        let y = (m.y - tSec * 0.004 * m.speed) % 1;
+        if (y < 0) y += 1;
+        const x = m.x + Math.sin(tSec * 0.12 * m.speed + m.phase) * 0.02;
+        const al = moteWeight * (0.25 + 0.75 * tw);
+        ctx.fillStyle = `rgba(90, 175, 168, ${(al * 0.14).toFixed(3)})`;
+        ctx.beginPath();
+        ctx.arc(x * w, y * h, m.r * 4.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = `rgba(170, 220, 208, ${(al * 0.85).toFixed(3)})`;
+        ctx.beginPath();
+        ctx.arc(x * w, y * h, m.r * 0.9, 0, Math.PI * 2);
         ctx.fill();
       }
     }
@@ -472,7 +495,9 @@ export function createAmbientLayer(): AmbientLayer {
       }
     }
 
-    drawFx(fromIndex, state, nowMs, window.innerWidth, window.innerHeight);
+    const moteWeight =
+      (fromIndex === 2 ? 1 - progress : 0) + (toIndex === 2 && fromIndex !== 2 ? progress : 0);
+    drawFx(fromIndex, state, nowMs, window.innerWidth, window.innerHeight, moteWeight);
   }
 
   function destroy(): void {

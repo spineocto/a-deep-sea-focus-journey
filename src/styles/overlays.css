@@ -127,11 +127,12 @@
 .codex-panel {
   position: absolute;
   top: 0;
-  right: 0;
+  left: 0;
   bottom: 0;
-  width: min(360px, 92vw);
+  /* Opens on the left, away from the timer ring on the right. */
+  width: min(420px, 92vw);
   padding: 32px 28px;
-  background: linear-gradient(90deg, rgba(2, 5, 10, 0), rgba(2, 5, 10, 0.97) 28px);
+  background: linear-gradient(270deg, rgba(2, 5, 10, 0), rgba(2, 5, 10, 0.97) 28px);
   overflow-y: auto;
   z-index: 20;
   animation: fade-in 0.6s var(--ease-slow);
@@ -158,6 +159,7 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0; /* lets the name ellipsize inside its grid cell */
 }
 
 .codex-art {
@@ -194,9 +196,12 @@
 
 .codex-item-name {
   font-family: var(--font-hand);
-  font-size: 22px;
+  font-size: 20px;
   line-height: 1.15;
   color: var(--light);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .codex-item.locked .codex-item-name {
@@ -247,37 +252,56 @@
   object-fit: contain;
 }
 
-/* Pencil underdrawing, then the ink soaks in from the centre outward. */
+/* Three passes, slow enough to watch (~10 s):
+   1. a pencil ghost of the drawing is already on the page,
+   2. the pen inks the lines in, sweeping across the plate (grey, no colour),
+   3. the colour wash soaks into the finished linework. */
 .reveal-sil {
-  filter: brightness(0) opacity(0.14) blur(0.6px);
+  filter: brightness(0) opacity(0.16) blur(0.6px);
+}
+
+.reveal-ink,
+.reveal-lit {
+  opacity: 0;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+.reveal-ink {
+  filter: grayscale(1) contrast(1.5) brightness(0.82);
+  -webkit-mask-image: linear-gradient(112deg, #000 38%, transparent 56%);
+  mask-image: linear-gradient(112deg, #000 38%, transparent 56%);
+  -webkit-mask-size: 320% 100%;
+  mask-size: 320% 100%;
+  -webkit-mask-position: 100% 0;
+  mask-position: 100% 0;
 }
 
 .reveal-lit {
-  -webkit-mask-image: radial-gradient(circle closest-side, #000 60%, transparent 100%);
-  mask-image: radial-gradient(circle closest-side, #000 60%, transparent 100%);
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  -webkit-mask-size: 0% 0%;
-  mask-size: 0% 0%;
-  -webkit-mask-position: 50% 50%;
-  mask-position: 50% 50%;
-  opacity: 0;
+  filter: saturate(1.5) contrast(1.05);
+}
+
+.reveal-stage.reveal-run .reveal-ink {
+  animation: ink-draw 5.6s cubic-bezier(0.4, 0.1, 0.4, 1) 0.9s forwards;
 }
 
 .reveal-stage.reveal-run .reveal-lit {
-  animation: ink-in 4.4s ease-in-out 0.8s forwards;
+  animation: colour-wash 4.2s ease-in-out 6s forwards;
 }
 
 .reveal-stage.reveal-done .reveal-lit {
   opacity: 1;
-  -webkit-mask-image: none;
-  mask-image: none;
+  filter: none;
 }
 
-@keyframes ink-in {
-  0% { opacity: 1; filter: grayscale(1) contrast(1.4) blur(2px); -webkit-mask-size: 0% 0%; mask-size: 0% 0%; }
-  70% { filter: grayscale(0.5) blur(0.6px); }
-  100% { opacity: 1; filter: none; -webkit-mask-size: 260% 260%; mask-size: 260% 260%; }
+@keyframes ink-draw {
+  0% { opacity: 1; -webkit-mask-position: 100% 0; mask-position: 100% 0; }
+  100% { opacity: 1; -webkit-mask-position: 0% 0; mask-position: 0% 0; }
+}
+
+@keyframes colour-wash {
+  0% { opacity: 0; filter: saturate(2.2) blur(5px); }
+  100% { opacity: 1; filter: none; }
 }
 
 .card-signal {
@@ -287,16 +311,12 @@
   line-height: 1.2;
   color: #7a2a24;
   opacity: 0;
-  animation: fade-in 2.4s var(--ease-slow) 5.4s forwards;
+  animation: fade-in 2.4s var(--ease-slow) 10.4s forwards;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .reveal-stage.reveal-run .reveal-lit {
-    animation: none;
-    opacity: 1;
-    -webkit-mask-image: none;
-    mask-image: none;
-  }
+  .reveal-stage.reveal-run .reveal-ink { animation: none; opacity: 0; }
+  .reveal-stage.reveal-run .reveal-lit { animation: none; opacity: 1; filter: none; }
   .card-signal { animation-delay: 0.6s; }
 }
 

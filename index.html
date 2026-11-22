@@ -181,8 +181,8 @@
           <span class="debug-title">JUMP</span>
           <button class="quiet" data-zone-jump="1">Sunlit</button>
           <button class="quiet" data-zone-jump="2">Twilight</button>
-          <button class="quiet" data-zone-jump="3">Midnight</button>
-          <button class="quiet" data-zone-jump="4">Abyssal</button>
+          <button class="quiet" data-zone-jump="3">Bathypelagic</button>
+          <button class="quiet" data-zone-jump="4">Abyssopelagic</button>
           <button class="quiet" data-zone-jump="5">Hadal</button>
           <button id="jump-ending" class="quiet">Ending</button>
           <button id="preview-run" class="quiet">Preview 60s</button>
@@ -191,13 +191,18 @@
           <span class="debug-title">CODEX</span>
           <button id="codex-show-all" class="quiet">All unlocked</button>
           <button id="codex-show-mixed" class="quiet">Mixed</button>
+          <button id="play-unlock" class="quiet">Play unlock</button>
         </div>
       </div>
+
+      <!-- Zone-entry light/colour shift (animated by CSS, zone set from preview.ts) -->
+      <div id="zone-shift" class="zone-shift" aria-hidden="true"></div>
 
       <!-- Zone title: fades in briefly when a new zone is entered. -->
       <div id="zone-title" class="zone-title" aria-hidden="true">
         <span class="zone-title-chapter" id="zone-title-chapter"></span>
         <span class="zone-title-name" id="zone-title-name"></span>
+        <span class="zone-title-epigraph" id="zone-title-epigraph"></span>
         <span class="zone-title-rule" aria-hidden="true"></span>
         <span class="zone-title-depth" id="zone-title-depth"></span>
       </div>
@@ -208,6 +213,7 @@
           <div class="card-kicker" id="card-kicker">FIELD LOG</div>
           <div class="reveal-stage" id="card-art" aria-hidden="true">
             <img class="reveal-sil" id="card-art-sil" alt="" />
+            <img class="reveal-ink" id="card-art-ink" alt="" />
             <img class="reveal-lit" id="card-art-lit" alt="" />
           </div>
           <h2 class="card-title" id="card-name">Unknown</h2>

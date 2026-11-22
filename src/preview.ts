@@ -17,13 +17,16 @@ import { Config } from './config.js';
 const PREVIEW_DURATION_MS = 60_000;
 
 /** Display names + entry depths for the quiet zone title. */
-export const ZONE_TITLES: ReadonlyArray<{ name: string; depth: number }> = [
-  { name: 'Epipelagic', depth: 0 },
-  { name: 'Mesopelagic', depth: 200 },
-  { name: 'Bathypelagic', depth: 1000 },
-  { name: 'Abyssopelagic', depth: 4000 },
-  { name: 'Hadal', depth: 6000 },
+export const ZONE_TITLES: ReadonlyArray<{ name: string; depth: number; epigraph: string }> = [
+  { name: 'Epipelagic', depth: 0, epigraph: 'the sunlit shallows' },
+  { name: 'Mesopelagic', depth: 200, epigraph: 'the twilight' },
+  { name: 'Bathypelagic', depth: 1000, epigraph: 'the last light' },
+  { name: 'Abyssopelagic', depth: 4000, epigraph: 'the abyssal plain' },
+  { name: 'Hadal', depth: 6000, epigraph: 'the trench' },
 ];
+
+/** How long the chapter heading stays up (it fades in and out slowly). */
+const TITLE_HOLD_MS = 7600;
 
 const CHAPTERS = ['I', 'II', 'III', 'IV', 'V'];
 
@@ -182,6 +185,8 @@ export function updateZoneTitle(zoneIdx: number, firstPaint: boolean): void {
   if (!el || !nameEl || !depthEl || !title) return;
 
   nameEl.textContent = title.name;
+  const epiEl = document.getElementById('zone-title-epigraph');
+  if (epiEl) epiEl.textContent = title.epigraph;
   if (chapterEl) chapterEl.textContent = `Chapter ${CHAPTERS[zoneIdx] ?? ''}`;
   depthEl.textContent = title.depth === 0 ? 'SURFACE' : `${title.depth.toLocaleString('en-US')} m`;
 
@@ -189,5 +194,14 @@ export function updateZoneTitle(zoneIdx: number, firstPaint: boolean): void {
   void el.offsetWidth; // restart the fade
   el.classList.add('show');
   if (titleTimer !== null) clearTimeout(titleTimer);
-  titleTimer = window.setTimeout(() => el.classList.remove('show'), 4200);
+  titleTimer = window.setTimeout(() => el.classList.remove('show'), TITLE_HOLD_MS);
+
+  // The descent moment: a brief, zone-specific light/colour shift.
+  const shift = document.getElementById('zone-shift');
+  if (shift) {
+    shift.setAttribute('data-shift', String(zoneIdx));
+    shift.classList.remove('go');
+    void shift.offsetWidth;
+    shift.classList.add('go');
+  }
 }

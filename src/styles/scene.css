@@ -390,7 +390,7 @@ body.ambient-motion-off .depth-ticks { display: none; }
   gap: 8px;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 1.4s var(--ease-slow), transform 1.4s var(--ease-slow);
+  transition: opacity 2.6s var(--ease-slow), transform 2.6s var(--ease-slow);
 }
 
 .zone-title.show {
@@ -552,3 +552,55 @@ body.ambient-motion-off .co-body,
 body.ambient-motion-off .co-ear,
 body.ambient-motion-off .co-eye,
 body.ambient-motion-off .lamp-glow { animation: none; }
+
+/* ---- Descent moment ---------------------------------------------------
+   The chapter heading arrives slowly, its lettering settling inward, and
+   the whole frame takes a brief, zone-specific light/colour shift. */
+.zone-title-epigraph {
+  font-family: var(--font-hand);
+  font-size: clamp(20px, 3.2vh, 30px);
+  color: var(--light-dim);
+  letter-spacing: 0.04em;
+  margin-top: -2px;
+}
+
+.zone-title.show .zone-title-name {
+  animation: title-settle 7s var(--ease-slow) 1 both;
+}
+
+@keyframes title-settle {
+  0% { letter-spacing: 0.22em; opacity: 0; }
+  35% { opacity: 1; }
+  100% { letter-spacing: 0.05em; opacity: 1; }
+}
+
+.zone-shift {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.zone-shift.go { animation: zone-shift 5.5s ease-in-out 1 both; }
+
+/* 2 Mesopelagic: the warm green-teal drains to blue. */
+.zone-shift[data-shift='1'] { background: radial-gradient(ellipse at 45% 40%, rgba(60, 90, 170, 0.55), rgba(10, 20, 60, 0.7)); }
+/* 3 Bathypelagic: the sun goes out, then a teal bloom. */
+.zone-shift[data-shift='2'] { background: radial-gradient(ellipse at 45% 50%, rgba(70, 170, 165, 0.45), rgba(2, 4, 14, 0.9) 75%); }
+/* 4 Abyssopelagic: a cold lilac hush. */
+.zone-shift[data-shift='3'] { background: radial-gradient(ellipse at 50% 60%, rgba(170, 164, 210, 0.5), rgba(30, 28, 50, 0.75)); }
+/* 5 Hadal: everything dims to black and a dull red breathes once. */
+.zone-shift[data-shift='4'] { background: radial-gradient(ellipse at 56% 90%, rgba(150, 22, 28, 0.55), rgba(0, 0, 0, 0.94) 70%); }
+
+@keyframes zone-shift {
+  0% { opacity: 0; }
+  22% { opacity: 0.85; }
+  45% { opacity: 0.55; }
+  100% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zone-title.show .zone-title-name { animation: none; }
+  .zone-shift.go { animation: none; opacity: 0; }
+}

@@ -185,7 +185,7 @@ function renderCodex(unlocked: { cardId: string; obtainedCount: number }[]): voi
     if (!hit) {
       return `<div class="codex-item locked"><div class="codex-art"><img src="${art}" alt="" /><span class="codex-q">?</span></div><span class="codex-item-name">Unknown</span><span class="codex-item-sub">${card.zone}</span></div>`;
     }
-    return `<div class="codex-item"><div class="codex-art lit"><img src="${art}" alt="${card.commonNameEn}" /></div><span class="codex-item-name">${card.commonNameEn}</span><span class="codex-item-sub">${card.zone} <span class="num">x${hit.obtainedCount}</span></span></div>`;
+    return `<div class="codex-item"><div class="codex-art lit"><img src="${art}" alt="${card.commonNameEn}" /></div><span class="codex-item-name" title="${card.commonNameEn}">${card.commonNameEn}</span><span class="codex-item-sub">${card.zone} <span class="num">x${hit.obtainedCount}</span></span></div>`;
   }).join('');
 }
 
@@ -400,6 +400,7 @@ function showCardReveal(cardId: string, isDuplicate: boolean, instant = false): 
   const art = CREATURE_ART[card.id] ?? '';
   const stage = document.getElementById('card-art');
   (document.getElementById('card-art-sil') as HTMLImageElement | null)?.setAttribute('src', art);
+  (document.getElementById('card-art-ink') as HTMLImageElement | null)?.setAttribute('src', art);
   (document.getElementById('card-art-lit') as HTMLImageElement | null)?.setAttribute('src', art);
   if (stage) {
     stage.classList.remove('reveal-run', 'reveal-done');
@@ -591,6 +592,22 @@ function initApp(): void {
       id: string,
       dup = false,
     ): void => showCardReveal(id, false, !dup ? false : true);
+  }
+
+  // Debug: replay the full unlock (ink-in, then colour wash) on a card without
+  // touching game state. Button "Play unlock" cycles through the six cards;
+  // ?debug=1&reveal=1 plays the first one on load, ?reveal=<card id> picks one.
+  let unlockDemoIdx = 0;
+  const playUnlock = (id?: string): void => {
+    const card = (id ? CREATURE_CARDS.find(c => c.id === id) : undefined) ?? CREATURE_CARDS[unlockDemoIdx % CREATURE_CARDS.length];
+    if (!card) return;
+    if (!id) unlockDemoIdx += 1;
+    showCardReveal(card.id, false);
+  };
+  document.getElementById('play-unlock')?.addEventListener('click', () => playUnlock());
+  const revealParam = urlParams.get('reveal');
+  if (debugOn && revealParam) {
+    window.setTimeout(() => playUnlock(revealParam === '1' ? CREATURE_CARDS[0]?.id : revealParam), 400);
   }
 
   // Sound toggle (muted by default).

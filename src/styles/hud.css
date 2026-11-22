@@ -321,15 +321,15 @@ button:disabled {
 }
 
 .scene[data-zone='4'] .timer {
-  animation: glitch-a 19s steps(1, end) infinite;
+  animation: glitch-a 8s steps(1, end) infinite;
 }
 
 .scene[data-zone='4'] .caption {
-  animation: glitch-b 23s steps(1, end) infinite;
+  animation: glitch-b 11s steps(1, end) infinite;
 }
 
 .scene[data-zone='4'] .depth-readout {
-  animation: glitch-b 31s steps(1, end) 7s infinite;
+  animation: glitch-b 14s steps(1, end) 3s infinite;
 }
 
 @keyframes glitch-a {
