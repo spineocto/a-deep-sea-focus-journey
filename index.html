@@ -73,9 +73,12 @@
         </div>
       </section>
 
-      <button id="codex-toggle" class="corner corner-right quiet faint" aria-expanded="false">
-        CODEX <span class="mono" id="codex-count">0/6</span>
-      </button>
+      <div class="corner corner-right corner-group">
+        <button id="sound-toggle" class="quiet faint" aria-pressed="false">SOUND OFF</button>
+        <button id="codex-toggle" class="quiet faint" aria-expanded="false">
+          CODEX <span class="mono" id="codex-count">0/6</span>
+        </button>
+      </div>
 
       <!-- Codex drawer -->
       <aside id="codex-panel" class="codex-panel" aria-label="Creature codex" hidden>

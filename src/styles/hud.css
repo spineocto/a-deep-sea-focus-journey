@@ -246,6 +246,12 @@ button:disabled {
   right: 32px;
 }
 
+.corner-group {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+
 /* ---- Portrait: timer on top, controls at the bottom ----------------- */
 @media (max-aspect-ratio: 1/1) {
   .hud {

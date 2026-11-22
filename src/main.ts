@@ -7,6 +7,7 @@ import { storage } from './storage.js';
 import { CREATURE_CARDS } from './codex-manager.js';
 import { createDepthCalculator } from './depth-calculator.js';
 import { distractionDetector } from './distraction-detector.js';
+import { createAudioController } from './audio.js';
 import { createAmbientLayer, zoneIndexForDepth } from './ambient.js';
 import { Config } from './config.js';
 import { CREATURE_ART } from './creature-art.js';
@@ -21,6 +22,7 @@ const depthCalculator = createDepthCalculator();
 // 動效層：背景 crossfade + 雪 / 氣泡 / 光柱 / 呼吸光 / 聲納
 // （背景 PNG 本身不動，動的是蓋在上面的透明層）
 const ambient = createAmbientLayer();
+const audio = createAudioController();
 
 // 選定的時長（分鐘）
 let selectedDuration: number | null = null;
@@ -269,6 +271,13 @@ function updateUI(): void {
     scene.setAttribute('data-mood', mood);
   }
 
+  // Ambience plays only while actively focusing.
+  if (currentState === AppState.FOCUSING || currentState === AppState.DISTRACTED) {
+    audio.startAmbience();
+  } else {
+    audio.stopAmbience();
+  }
+
   // 6. Codex list (only re-rendered when it changes).
   renderCodex(state.codexState.unlockedCards);
 
@@ -335,6 +344,7 @@ function showCardReveal(cardId: string, isDuplicate: boolean): void {
   signal?.classList.toggle('hidden', !card.isEndingCard);
 
   // 顯示模態框
+  audio.ping();
   modal.classList.add('active');
 }
 
@@ -473,6 +483,21 @@ function initApp(): void {
   };
   codexToggle?.addEventListener('click', () => setCodexOpen(codexPanel?.hidden ?? false));
   document.getElementById('codex-close')?.addEventListener('click', () => setCodexOpen(false));
+
+  // Sound toggle (muted by default).
+  const soundToggle = document.getElementById('sound-toggle');
+  const syncSoundToggle = (): void => {
+    if (!soundToggle) return;
+    const on = audio.isEnabled();
+    soundToggle.textContent = on ? 'SOUND ON' : 'SOUND OFF';
+    soundToggle.setAttribute('aria-pressed', String(on));
+    soundToggle.classList.toggle('faint', !on);
+  };
+  syncSoundToggle();
+  soundToggle?.addEventListener('click', () => {
+    audio.setEnabled(!audio.isEnabled());
+    syncSoundToggle();
+  });
 
   // 0. 掛載動效層（背景 + 透明動效，尊重 prefers-reduced-motion）
   ambient.mount();
