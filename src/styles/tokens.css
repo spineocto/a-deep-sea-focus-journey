@@ -1,0 +1,63 @@
+/* Design tokens. Fonts: Cormorant Garamond (display), Inter (UI),
+   IBM Plex Mono (numeric readouts only).
+   The only warm colour on screen is the bell's glow (--warm). */
+:root {
+  --sea-0: #02050a;
+  --sea-1: #050b13;
+  --light: rgba(226, 240, 245, 0.92);
+  --light-dim: rgba(186, 210, 220, 0.62);
+  --light-faint: rgba(186, 210, 220, 0.34);
+  --line: rgba(186, 210, 220, 0.2);
+  --line-strong: rgba(214, 232, 240, 0.5);
+  --warm: 232, 160, 120; /* rgb triplet, used only for the bell glow */
+  --wrong: 150, 52, 46; /* muted dark red for the hadal zone and warnings */
+
+  --font-display: 'Cormorant Garamond', 'Iowan Old Style', Georgia, serif;
+  --font-ui: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --ease-slow: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  background: var(--sea-0);
+  color: var(--light);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-variant-numeric: tabular-nums;
+}
+
+.hidden {
+  display: none !important;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+button {
+  font-family: var(--font-ui);
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+button:focus-visible {
+  outline: 1px solid var(--line-strong);
+  outline-offset: 4px;
+}

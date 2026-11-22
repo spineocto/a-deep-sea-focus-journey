@@ -1,0 +1,271 @@
+/* Wordmark: tiny, top-left. */
+.wordmark {
+  position: absolute;
+  top: 28px;
+  left: 32px;
+  display: flex;
+  gap: 18px;
+  align-items: baseline;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 300;
+  font-size: 17px;
+  letter-spacing: 0.04em;
+  color: var(--light-faint);
+}
+
+.demo-indicator {
+  display: none;
+  font-family: var(--font-ui);
+  font-style: normal;
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  color: rgba(var(--wrong), 0.9);
+}
+
+.demo-indicator.active {
+  display: inline;
+}
+
+/* Depth: a hairline rail on the left edge and a small readout. */
+.depth-rail {
+  position: absolute;
+  left: 32px;
+  top: 14vh;
+  bottom: 14vh;
+  width: 1px;
+}
+
+.depth-rail-line {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent, var(--line) 12%, var(--line) 88%, transparent);
+}
+
+.depth-rail-marker {
+  position: absolute;
+  left: -2px;
+  top: calc(var(--depth-pct, 0) * 1%);
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--light);
+  box-shadow: 0 0 10px 2px rgba(200, 230, 240, 0.5);
+  transition: top 0.6s var(--ease-slow);
+}
+
+.depth-readout {
+  position: absolute;
+  left: 32px;
+  bottom: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--light-faint);
+}
+
+.depth-readout .mono {
+  text-transform: none;
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  color: var(--light-dim);
+}
+
+.depth-readout-round .mono {
+  text-transform: none;
+  font-size: 11px;
+}
+
+/* ---- Timer + oxygen ring --------------------------------------------- */
+.hud {
+  position: absolute;
+  left: 58vw;
+  right: 4vw;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(20px, 4vh, 44px);
+}
+
+.timer-ring {
+  position: relative;
+  width: clamp(240px, 34vh, 400px);
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+  overflow: visible;
+}
+
+.ring circle {
+  fill: none;
+  stroke-width: 0.5;
+}
+
+.ring-track {
+  stroke: var(--line);
+  opacity: 0.5;
+}
+
+.ring-oxygen {
+  stroke: var(--light-dim);
+  stroke-linecap: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: calc(100 - var(--oxygen, 1) * 100);
+  filter: drop-shadow(0 0 3px rgba(190, 225, 240, 0.5));
+  transition: stroke-dashoffset 0.8s linear;
+}
+
+.ring-label {
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  transform: translate(-50%, -100%);
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  color: var(--light-faint);
+}
+
+.timer {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-variant-numeric: lining-nums tabular-nums;
+  font-size: clamp(54px, 10.5vh, 112px);
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: var(--light);
+  text-shadow:
+    0 0 calc(16px + var(--ambient-breath, 0.5) * 22px) rgba(190, 225, 240, 0.4),
+    0 0 calc(50px + var(--ambient-breath, 0.5) * 30px) rgba(150, 200, 225, 0.22);
+}
+
+.caption {
+  min-height: 2.4em;
+  max-width: 24ch;
+  text-align: center;
+  font-size: 10px;
+  line-height: 1.5;
+  font-weight: 500;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--light-dim);
+}
+
+/* ---- Controls: quiet ------------------------------------------------- */
+.controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+  min-height: 96px;
+}
+
+.durations {
+  display: flex;
+  gap: 28px;
+}
+
+button.quiet {
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--light-faint);
+  padding: 8px 2px;
+  border-bottom: 1px solid transparent;
+  transition: color 0.4s, border-color 0.4s, text-shadow 0.4s;
+}
+
+button.quiet .mono {
+  font-size: 15px;
+  letter-spacing: 0.08em;
+}
+
+button.quiet:hover:not(:disabled) {
+  color: var(--light);
+}
+
+button.quiet.selected {
+  color: var(--light);
+  border-bottom-color: var(--line-strong);
+  text-shadow: 0 0 14px rgba(200, 230, 240, 0.6);
+}
+
+button.quiet.faint {
+  opacity: 0.7;
+}
+
+button.primary {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.4em;
+  text-indent: 0.4em;
+  color: var(--light);
+  padding: 16px 34px;
+  border: 1px solid var(--line-strong);
+  border-radius: 1px;
+  background: rgba(2, 5, 10, 0.25);
+  transition: border-color 0.5s, box-shadow 0.5s, opacity 0.5s;
+}
+
+button.primary:hover:not(:disabled) {
+  border-color: rgba(230, 244, 250, 0.85);
+  box-shadow: 0 0 28px rgba(190, 225, 240, 0.22), inset 0 0 18px rgba(190, 225, 240, 0.08);
+}
+
+button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.corner {
+  position: absolute;
+  bottom: 24px;
+  right: 32px;
+}
+
+/* ---- Portrait: timer on top, controls at the bottom ----------------- */
+@media (max-aspect-ratio: 1/1) {
+  .hud {
+    left: 0;
+    right: 0;
+    justify-content: space-between;
+    padding: 12vh 0 8vh;
+  }
+  .timer-ring {
+    width: min(60vw, 28vh);
+  }
+  .timer {
+    font-size: min(15vw, 9vh);
+  }
+  .wordmark { left: 20px; top: 20px; }
+  .depth-rail, .depth-readout { left: 20px; }
+  .corner { right: 20px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ring-oxygen,
+  .depth-rail-marker { transition: none; }
+}

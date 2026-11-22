@@ -70,6 +70,9 @@ export interface AppController {
   save(): void;
   restoreFromStorage(): void;
   
+  // 休息進度（供 UI 顯示剩餘時間與氧氣回充；非休息狀態回傳 null）
+  getBreakProgress(): { remainingMs: number; durationMs: number } | null;
+
   // RAF loop（由外部呼叫）
   update(): void;
 }
@@ -373,6 +376,21 @@ export class AppControllerImpl implements AppController {
     this.timerState = null;
   }
   
+  /**
+   * 休息進度（只在 SHORT_BREAK / LONG_BREAK 有值）
+   */
+  getBreakProgress(): { remainingMs: number; durationMs: number } | null {
+    const state = this.stateMachine.getState();
+    if (state !== AppState.SHORT_BREAK && state !== AppState.LONG_BREAK) {
+      return null;
+    }
+    const elapsed = Date.now() - this.breakStartAt;
+    return {
+      remainingMs: Math.max(0, this.breakDurationMs - elapsed),
+      durationMs: this.breakDurationMs,
+    };
+  }
+
   /**
    * RAF loop 更新
    */

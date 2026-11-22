@@ -1,0 +1,186 @@
+/* ---- Research-file card ---------------------------------------------- */
+.card-reveal {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at 50% 50%, rgba(2, 5, 10, 0.78), rgba(1, 2, 4, 0.96));
+}
+
+.card-reveal.active {
+  display: flex;
+  animation: fade-in 1.2s var(--ease-slow);
+}
+
+.card-content {
+  width: min(440px, 88vw);
+  padding: 44px 40px 36px;
+  border: 1px solid var(--line);
+  background: rgba(4, 9, 15, 0.7);
+  text-align: left;
+}
+
+.card-kicker {
+  font-size: 10px;
+  letter-spacing: 0.4em;
+  color: var(--light-faint);
+  margin-bottom: 22px;
+}
+
+.card-title {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: 40px;
+  line-height: 1.1;
+  color: var(--light);
+}
+
+.card-zh {
+  margin-top: 6px;
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  color: var(--light-dim);
+}
+
+.card-subtitle {
+  margin-top: 10px;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 19px;
+  color: var(--light-dim);
+}
+
+.card-meta {
+  display: flex;
+  gap: 32px;
+  margin: 26px 0 20px;
+  padding: 16px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.card-meta dt {
+  font-size: 9px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--light-faint);
+  margin-bottom: 5px;
+}
+
+.card-meta dd {
+  font-size: 13px;
+  color: var(--light);
+}
+
+.card-facts {
+  font-size: 13px;
+  line-height: 1.75;
+  color: var(--light-dim);
+  margin-bottom: 30px;
+}
+
+.card-content button.quiet {
+  color: var(--light-dim);
+  border-bottom-color: var(--line);
+}
+
+/* ---- Codex drawer ----------------------------------------------------- */
+.codex-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(360px, 92vw);
+  padding: 32px 28px;
+  background: linear-gradient(90deg, transparent, rgba(2, 5, 10, 0.88) 18%);
+  overflow-y: auto;
+  z-index: 20;
+  animation: fade-in 0.6s var(--ease-slow);
+}
+
+.codex-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 10px;
+  letter-spacing: 0.36em;
+  color: var(--light-dim);
+  margin-bottom: 28px;
+}
+
+.codex-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.codex-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.codex-item-name {
+  font-family: var(--font-display);
+  font-size: 20px;
+  color: var(--light);
+}
+
+.codex-item.locked .codex-item-name {
+  color: var(--light-faint);
+}
+
+.codex-item-sub {
+  display: block;
+  margin-top: 3px;
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--light-faint);
+}
+
+.codex-item-count {
+  font-size: 12px;
+  color: var(--light-dim);
+}
+
+/* ---- Debug ------------------------------------------------------------ */
+.debug-panel {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  z-index: 30;
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  padding: 8px 18px;
+  border: 1px dashed var(--line);
+  background: rgba(2, 5, 10, 0.7);
+}
+
+.debug-title {
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  color: rgba(var(--wrong), 0.9);
+}
+
+.debug-panel button.quiet {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: none;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-reveal.active,
+  .codex-panel { animation: none; }
+}

@@ -7,7 +7,11 @@ import { storage } from './storage.js';
 import { CREATURE_CARDS } from './codex-manager.js';
 import { createDepthCalculator } from './depth-calculator.js';
 import { distractionDetector } from './distraction-detector.js';
-import { createAmbientLayer } from './ambient.js';
+import { createAmbientLayer, zoneIndexForDepth } from './ambient.js';
+import { Config } from './config.js';
+import bellNormalUrl from '../art/out/bell-normal.webp';
+import bellAlertUrl from '../art/out/bell-alert.webp';
+import bellSleepingUrl from '../art/out/bell-sleeping.webp';
 
 // 應用程式控制器實例
 const appController = createAppController();
@@ -122,6 +126,47 @@ export function updateButtonVisibility(currentState: AppState, endingSeen: boole
   }
 }
 
+const OXYGEN_DRAIN = 0.65; // oxygen never drops below 35% during a round
+let lastOxygen = 1;
+let codexKey = '';
+
+const CAPTIONS: Record<AppState, string> = {
+  [AppState.IDLE]: 'READY',
+  [AppState.FOCUSING]: 'DESCENDING',
+  [AppState.DISTRACTED]: 'WARNING: SOMETHING IS WATCHING YOU',
+  [AppState.SHORT_BREAK]: 'OXYGEN REFILLING',
+  [AppState.LONG_BREAK]: 'DOCKED BESIDE THE WRECK',
+  [AppState.ENDING]: 'SIGNAL DETECTED BELOW THE KNOWN DEPTH.',
+};
+
+function setText(id: string, text: string): void {
+  const el = document.getElementById(id);
+  if (el && el.textContent !== text) el.textContent = text;
+}
+
+function formatClock(ms: number): string {
+  const total = Math.max(0, Math.ceil(ms / 1000));
+  const m = Math.floor(total / 60);
+  const s = total % 60;
+  return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+}
+
+function renderCodex(unlocked: { cardId: string; obtainedCount: number }[]): void {
+  const key = unlocked.map(u => `${u.cardId}:${u.obtainedCount}`).join('|');
+  if (key === codexKey) return;
+  codexKey = key;
+  setText('codex-count', `${unlocked.length}/${CREATURE_CARDS.length}`);
+  const list = document.getElementById('codex-display');
+  if (!list) return;
+  list.innerHTML = CREATURE_CARDS.map(card => {
+    const hit = unlocked.find(u => u.cardId === card.id);
+    if (!hit) {
+      return `<div class="codex-item locked"><div><span class="codex-item-name">?</span><span class="codex-item-sub">${card.zone}</span></div></div>`;
+    }
+    return `<div class="codex-item"><div><span class="codex-item-name">${card.commonNameEn}</span><span class="codex-item-sub">${card.zone}</span></div><span class="codex-item-count mono">x${hit.obtainedCount}</span></div>`;
+  }).join('');
+}
+
 /**
  * 更新 UI 顯示
  */
@@ -154,93 +199,86 @@ function updateUI(): void {
   // 更新前一次狀態
   previousState = currentState;
   
-  // 1. 更新狀態顯示
-  const stateDisplay = document.getElementById('state-display');
-  if (stateDisplay) {
-    stateDisplay.textContent = currentState;
+  const now = Date.now();
+  const scene = document.getElementById('app');
+  const currentDepth = depthCalculator.getCurrentTotalDepth(depthState);
+  const zoneIdx = zoneIndexForDepth(currentDepth);
+  const breakInfo = appController.getBreakProgress();
+
+  // 1. Caption under the timer. The two English system lines are fixed
+  //    (never reworded), see .kiro/steering/product.md.
+  setText('state-display', CAPTIONS[currentState]);
+
+  // 2. Timer: remaining focus time, remaining break time, or the chosen length.
+  let timeText = '--:--';
+  let remainingMs: number | null = null;
+  if (timerState && (currentState === AppState.FOCUSING || currentState === AppState.DISTRACTED)) {
+    remainingMs = timer.getRemainingTime(timerState, now);
+  } else if (breakInfo) {
+    remainingMs = breakInfo.remainingMs;
+  } else if (currentState === AppState.IDLE && selectedDuration !== null) {
+    remainingMs = selectedDuration * 60 * 1000;
   }
-  
-  // 2. 更新時間顯示
-  const timeDisplay = document.getElementById('time-display');
-  if (timeDisplay) {
-    if (timerState && (currentState === AppState.FOCUSING || currentState === AppState.DISTRACTED)) {
-      const remaining = timer.getRemainingTime(timerState, Date.now());
-      const minutes = Math.floor(remaining / 1000 / 60);
-      const seconds = Math.floor((remaining / 1000) % 60);
-      timeDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-    } else {
-      timeDisplay.textContent = '--:--';
-    }
+  if (remainingMs !== null) {
+    timeText = formatClock(remainingMs);
   }
-  
-  // 3. 更新總深度顯示
-  const totalDepthDisplay = document.getElementById('total-depth-display');
-  if (totalDepthDisplay) {
-    totalDepthDisplay.textContent = `${Math.floor(depthState.totalDepth)} m`;
+  setText('time-display', timeText);
+
+  // 3. Oxygen ring: drains slowly while focusing (never below 35%, never
+  //    forces a stop), refills during a break.
+  let oxygen = 1;
+  if (timerState && (currentState === AppState.FOCUSING || currentState === AppState.DISTRACTED)) {
+    const total = timerState.selectedDurationMs;
+    const progress = total > 0 ? 1 - Math.max(0, remainingMs ?? 0) / total : 0;
+    oxygen = 1 - OXYGEN_DRAIN * Math.min(1, Math.max(0, progress));
+    lastOxygen = oxygen;
+  } else if (breakInfo && breakInfo.durationMs > 0) {
+    const refill = 1 - breakInfo.remainingMs / breakInfo.durationMs;
+    oxygen = lastOxygen + (1 - lastOxygen) * Math.min(1, Math.max(0, refill));
+  } else {
+    lastOxygen = 1;
   }
-  
-  // 4. 更新本輪深度顯示（淨深度 = 下沉深度 - 上浮懲罰）
-  const descentDepthDisplay = document.getElementById('descent-depth-display');
-  if (descentDepthDisplay) {
-    const netDescent = Math.max(0, depthState.roundDescentDepth - depthState.roundRisePenalty);
-    descentDepthDisplay.textContent = `${Math.floor(netDescent)} m`;
+  scene?.style.setProperty('--oxygen', oxygen.toFixed(4));
+
+  // 4. Depth readouts + the hairline marker on the left edge.
+  setText('total-depth-display', `${Math.floor(currentDepth).toLocaleString('en-US')} m`);
+  const netDescent = Math.max(0, depthState.roundDescentDepth - depthState.roundRisePenalty);
+  setText('descent-depth-display', `${Math.floor(netDescent)} m`);
+  document.getElementById('descent-wrap')?.classList.toggle(
+    'hidden',
+    !(currentState === AppState.FOCUSING || currentState === AppState.DISTRACTED),
+  );
+  setText('zone-display', depthCalculator.getZone(currentDepth));
+  setText('rounds-display', state.completedRounds.toString());
+  const pct = Math.min(100, (currentDepth / Config.targetDepth) * 100);
+  scene?.style.setProperty('--depth-pct', pct.toFixed(3));
+
+  // 5. Scene attributes: CSS reads these for mood, zone and state.
+  if (scene) {
+    scene.setAttribute('data-state', currentState);
+    scene.setAttribute('data-zone', String(zoneIdx));
+    const mood =
+      currentState === AppState.DISTRACTED
+        ? 'alert'
+        : currentState === AppState.SHORT_BREAK || currentState === AppState.LONG_BREAK
+          ? 'sleeping'
+          : 'normal';
+    scene.setAttribute('data-mood', mood);
   }
-  
-  // 5. 更新當前區域顯示
-  const zoneDisplay = document.getElementById('zone-display');
-  if (zoneDisplay) {
-    const zone = depthCalculator.getZone(depthState.totalDepth);
-    zoneDisplay.textContent = zone;
-  }
-  
-  // 6. 更新完成輪數顯示
-  const roundsDisplay = document.getElementById('rounds-display');
-  if (roundsDisplay) {
-    roundsDisplay.textContent = state.completedRounds.toString();
-  }
-  
-  // 7. 更新圖鑑清單顯示
-  const codexDisplay = document.getElementById('codex-display');
-  if (codexDisplay) {
-    if (state.codexState.unlockedCards.length === 0) {
-      codexDisplay.innerHTML = '<div style="color: #607d8b; font-style: italic;">No creatures discovered yet...</div>';
-    } else {
-      codexDisplay.innerHTML = state.codexState.unlockedCards
-        .map(unlocked => {
-          const card = CREATURE_CARDS.find(c => c.id === unlocked.cardId);
-          if (!card) return '';
-          return `
-            <div class="codex-item">
-              <div class="codex-item-name">${card.commonNameZh}</div>
-              <div class="codex-item-count">×${unlocked.obtainedCount}</div>
-            </div>
-          `;
-        })
-        .join('');
-    }
-  }
-  
-  // 8. 更新深度進度條
-  const depthProgressBar = document.getElementById('depth-progress-bar');
-  const depthProgressText = document.getElementById('depth-progress-text');
-  if (depthProgressBar && depthProgressText) {
-    const targetDepth = 10900;
-    const percentage = Math.min(100, (depthState.totalDepth / targetDepth) * 100);
-    depthProgressBar.style.width = `${percentage}%`;
-    depthProgressText.textContent = `${Math.floor(depthState.totalDepth)} / ${targetDepth.toLocaleString()} m (${percentage.toFixed(1)}%)`;
-  }
-  
-  // 9. 更新 Demo 模式指示器
-  const demoIndicator = document.getElementById('demo-indicator');
-  if (demoIndicator) {
-    if (state.isDemoMode) {
-      demoIndicator.classList.add('active');
-    } else {
-      demoIndicator.classList.remove('active');
-    }
-  }
-  
-  // 10. 更新動效層：用本輪淨深度（不是已結算的總深度），
+
+  // 6. Codex list (only re-rendered when it changes).
+  renderCodex(state.codexState.unlockedCards);
+
+  // 7. Demo mode indicator.
+  document.getElementById('demo-indicator')?.classList.toggle('active', state.isDemoMode);
+
+  // 8. Document title doubles as a quiet timer.
+  document.title =
+    remainingMs !== null && currentState !== AppState.IDLE
+      ? `${timeText} - Deep Sea Focus Journey`
+      : 'Deep Sea Focus Journey';
+
+  // 9. 更新動效層：用本輪淨深度（不是已結算的總深度），
   // 這樣專注進行中背景就會慢慢下沉、慢慢變暗。
   ambient.update(
     depthCalculator.getCurrentTotalDepth(depthState),
@@ -248,7 +286,7 @@ function updateUI(): void {
     Date.now(),
   );
 
-  // 11. 更新按鈕可見性
+  // 10. 更新按鈕可見性
   updateButtonVisibility(currentState, state.endingSeen);
 }
 
@@ -271,16 +309,14 @@ function showCardReveal(cardId: string, isDuplicate: boolean): void {
   }
   
   // 設定卡片內容
-  if (isDuplicate) {
-    cardName.textContent = `${card.commonNameZh} (again!)`;
-  } else {
-    cardName.textContent = `New Creature: ${card.commonNameZh}`;
-  }
+  setText('card-kicker', isDuplicate ? 'FIELD LOG / DUPLICATE RECORD' : 'FIELD LOG / NEW SPECIES');
+  cardName.textContent = card.commonNameEn;
+  setText('card-zh', card.commonNameZh);
   cardScientificName.textContent = card.scientificName;
   cardZone.textContent = card.zone;
   cardDepthRange.textContent = card.depthRange;
   cardFacts.textContent = card.facts;
-  
+
   // 顯示模態框
   modal.classList.add('active');
 }
@@ -386,6 +422,38 @@ function rafLoop(): void {
  * 初始化應用程式
  */
 function initApp(): void {
+  // 00. Bell sprites
+  const sprites: Array<[string, string]> = [
+    ['bell-normal', bellNormalUrl],
+    ['bell-alert', bellAlertUrl],
+    ['bell-sleeping', bellSleepingUrl],
+  ];
+  for (const [id, url] of sprites) {
+    const img = document.getElementById(id) as HTMLImageElement | null;
+    if (img) img.src = url;
+  }
+
+  // 00b. Debug panel: hidden unless ?debug=1 or Shift+D. Codex drawer toggle.
+  const debugPanel = document.getElementById('debug-panel');
+  if (new URLSearchParams(window.location.search).get('debug') === '1') {
+    debugPanel?.classList.remove('hidden');
+  }
+  window.addEventListener('keydown', (e) => {
+    if (e.shiftKey && e.key.toLowerCase() === 'd' && !e.metaKey && !e.ctrlKey) {
+      debugPanel?.classList.toggle('hidden');
+    }
+    if (e.key === 'Escape') setCodexOpen(false);
+  });
+  const codexToggle = document.getElementById('codex-toggle');
+  const codexPanel = document.getElementById('codex-panel');
+  const setCodexOpen = (open: boolean): void => {
+    if (!codexPanel) return;
+    codexPanel.hidden = !open;
+    codexToggle?.setAttribute('aria-expanded', String(open));
+  };
+  codexToggle?.addEventListener('click', () => setCodexOpen(codexPanel?.hidden ?? false));
+  document.getElementById('codex-close')?.addEventListener('click', () => setCodexOpen(false));
+
   // 0. 掛載動效層（背景 + 透明動效，尊重 prefers-reduced-motion）
   ambient.mount();
   const motionToggle = document.getElementById('motion-toggle');
