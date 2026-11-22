@@ -99,7 +99,7 @@
       <div class="depth-readout" aria-live="off">
         <span class="mono" id="total-depth-display">0 m</span>
         <span class="depth-readout-zone" id="zone-display">Sunlit</span>
-        <span class="depth-readout-round">Round <span class="mono" id="rounds-display">0</span></span>
+        <span class="depth-readout-round">Round <span class="num" id="rounds-display">0</span></span>
         <span class="depth-readout-round hidden" id="descent-wrap">This dive <span class="mono" id="descent-depth-display">0 m</span></span>
       </div>
 
@@ -116,9 +116,9 @@
 
         <div class="controls">
           <div id="duration-selection" class="durations hidden">
-            <button id="duration-15" class="quiet" data-duration="15"><span class="mono">15</span> min</button>
-            <button id="duration-25" class="quiet" data-duration="25"><span class="mono">25</span> min</button>
-            <button id="duration-45" class="quiet" data-duration="45"><span class="mono">45</span> min</button>
+            <button id="duration-15" class="quiet" data-duration="15"><span class="num">15</span> min</button>
+            <button id="duration-25" class="quiet" data-duration="25"><span class="num">25</span> min</button>
+            <button id="duration-45" class="quiet" data-duration="45"><span class="num">45</span> min</button>
           </div>
           <div class="actions">
             <button id="start-button" class="primary hidden">START DESCENT</button>
@@ -134,7 +134,7 @@
       <div class="corner corner-right corner-group">
         <button id="sound-toggle" class="quiet faint" aria-pressed="false">SOUND OFF</button>
         <button id="codex-toggle" class="quiet faint" aria-expanded="false">
-          CODEX <span class="mono" id="codex-count">0/6</span>
+          CODEX <span class="num" id="codex-count">0/6</span>
         </button>
       </div>
 
@@ -174,6 +174,11 @@
           <button id="jump-ending" class="quiet">Ending</button>
           <button id="preview-run" class="quiet">Preview 60s</button>
         </div>
+        <div class="debug-row">
+          <span class="debug-title">CODEX</span>
+          <button id="codex-show-all" class="quiet">All unlocked</button>
+          <button id="codex-show-mixed" class="quiet">Mixed</button>
+        </div>
       </div>
 
       <!-- Zone title: fades in briefly when a new zone is entered. -->
@@ -197,7 +202,7 @@
           <div class="card-subtitle" id="card-scientific-name"></div>
           <dl class="card-meta">
             <div><dt>Zone</dt><dd id="card-zone"></dd></div>
-            <div><dt>Depth</dt><dd class="mono" id="card-depth-range"></dd></div>
+            <div><dt>Depth</dt><dd class="num" id="card-depth-range"></dd></div>
           </dl>
           <p class="card-facts" id="card-facts"></p>
           <p class="card-signal hidden" id="card-signal">SIGNAL DETECTED BELOW THE KNOWN DEPTH.</p>

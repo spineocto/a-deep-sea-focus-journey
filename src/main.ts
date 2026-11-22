@@ -145,6 +145,8 @@ export function updateButtonVisibility(currentState: AppState, endingSeen: boole
 const OXYGEN_DRAIN = 0.65; // oxygen never drops below 35% during a round
 let lastOxygen = 1;
 let codexKey = '';
+/** When true, updateUI leaves the codex drawer alone (debug showcase). */
+let codexShowcaseLock = false;
 let firstPaint = true;
 let prevDepthForRate = 0;
 let prevRateTime = 0;
@@ -183,8 +185,21 @@ function renderCodex(unlocked: { cardId: string; obtainedCount: number }[]): voi
     if (!hit) {
       return `<div class="codex-item locked"><div class="codex-art"><img src="${art}" alt="" /><span class="codex-q">?</span></div><span class="codex-item-name">Unknown</span><span class="codex-item-sub">${card.zone}</span></div>`;
     }
-    return `<div class="codex-item"><div class="codex-art lit"><img src="${art}" alt="${card.commonNameEn}" /></div><span class="codex-item-name">${card.commonNameEn}</span><span class="codex-item-sub">${card.zone} <span class="mono">x${hit.obtainedCount}</span></span></div>`;
+    return `<div class="codex-item"><div class="codex-art lit"><img src="${art}" alt="${card.commonNameEn}" /></div><span class="codex-item-name">${card.commonNameEn}</span><span class="codex-item-sub">${card.zone} <span class="num">x${hit.obtainedCount}</span></span></div>`;
   }).join('');
+}
+
+/**
+ * Debug-only codex showcase. Renders a synthetic unlocked list into the
+ * drawer and opens it, WITHOUT touching real storage. 'all' unlocks every
+ * card; 'mixed' unlocks the first three and leaves the rest as silhouettes.
+ */
+export function showcaseCodex(mode: 'all' | 'mixed', open: (v: boolean) => void): void {
+  const cards = mode === 'all' ? CREATURE_CARDS : CREATURE_CARDS.slice(0, 3);
+  codexShowcaseLock = true;
+  codexKey = '__showcase__' + mode; // bypass the real-state cache
+  renderCodex(cards.map(c => ({ cardId: c.id, obtainedCount: 1 })));
+  open(true);
 }
 
 /**
@@ -310,8 +325,9 @@ function updateUI(): void {
     audio.stopAmbience();
   }
 
-  // 6. Codex list (only re-rendered when it changes).
-  renderCodex(state.codexState.unlockedCards);
+  // 6. Codex list (only re-rendered when it changes; skipped while the
+  //    debug codex showcase has taken over the drawer).
+  if (!codexShowcaseLock) renderCodex(state.codexState.unlockedCards);
 
   // 7. Demo mode indicator.
   document.getElementById('demo-indicator')?.classList.toggle('active', state.isDemoMode);
@@ -353,7 +369,7 @@ function glanceCompanion(): void {
   glanceTimer = window.setTimeout(() => scene.classList.remove('glance'), 6500);
 }
 
-function showCardReveal(cardId: string, isDuplicate: boolean): void {
+function showCardReveal(cardId: string, isDuplicate: boolean, instant = false): void {
   const card = CREATURE_CARDS.find(c => c.id === cardId);
   if (!card) return;
 
@@ -388,7 +404,7 @@ function showCardReveal(cardId: string, isDuplicate: boolean): void {
   if (stage) {
     stage.classList.remove('reveal-run', 'reveal-done');
     void stage.offsetWidth; // restart the CSS animation
-    stage.classList.add(isDuplicate ? 'reveal-done' : 'reveal-run');
+    stage.classList.add(isDuplicate || instant ? 'reveal-done' : 'reveal-run');
   }
   // The ending card is followed by the final fixed line.
   const signal = document.getElementById('card-signal');
@@ -539,6 +555,7 @@ function initApp(): void {
     }
     if (e.key === 'Escape') {
       setCodexOpen(false);
+      codexShowcaseLock = false;
       setDepthOverride(null);
     }
   });
@@ -551,6 +568,30 @@ function initApp(): void {
   };
   codexToggle?.addEventListener('click', () => setCodexOpen(codexPanel?.hidden ?? false));
   document.getElementById('codex-close')?.addEventListener('click', () => setCodexOpen(false));
+
+  // Debug codex showcase: open the drawer with a synthetic unlocked list,
+  // via the debug buttons or ?codex=all / ?codex=mixed. Closing releases it.
+  const releaseAndClose = (): void => {
+    codexShowcaseLock = false;
+    codexKey = '';
+    setCodexOpen(false);
+  };
+  document.getElementById('codex-close')?.addEventListener('click', releaseAndClose);
+  document.getElementById('codex-show-all')?.addEventListener('click', () => showcaseCodex('all', setCodexOpen));
+  document.getElementById('codex-show-mixed')?.addEventListener('click', () => showcaseCodex('mixed', setCodexOpen));
+  const codexParam = urlParams.get('codex');
+  if (codexParam === 'all' || codexParam === 'mixed') {
+    debugPanel?.classList.remove('hidden');
+    showcaseCodex(codexParam, setCodexOpen);
+  }
+  // Debug-only hook: open a specific creature card by id, for screenshots.
+  // isDuplicate=true shows it fully "inked in"; false runs the ink-in sweep.
+  if (debugOn || codexParam) {
+    (window as unknown as { __debugCard?: (id: string, dup?: boolean) => void }).__debugCard = (
+      id: string,
+      dup = false,
+    ): void => showCardReveal(id, false, !dup ? false : true);
+  }
 
   // Sound toggle (muted by default).
   const soundToggle = document.getElementById('sound-toggle');

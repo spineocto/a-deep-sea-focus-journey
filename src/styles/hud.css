@@ -67,7 +67,7 @@
   flex-direction: column;
   gap: 4px;
   font-size: 10px;
-  letter-spacing: 0.28em;
+  letter-spacing: var(--track-label);
   text-transform: uppercase;
   color: var(--light-faint);
 }
@@ -145,7 +145,8 @@
   left: 50%;
   transform: translate(-50%, -100%);
   font-size: 9px;
-  letter-spacing: 0.3em;
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
   color: var(--light-faint);
 }
 
@@ -169,7 +170,7 @@
   font-size: 10px;
   line-height: 1.5;
   font-weight: 500;
-  letter-spacing: 0.32em;
+  letter-spacing: var(--track-label);
   text-transform: uppercase;
   color: var(--light-dim);
 }
@@ -216,9 +217,9 @@ button.quiet {
   transition: color 0.4s, border-color 0.4s, text-shadow 0.4s;
 }
 
-button.quiet .mono {
-  font-size: 15px;
-  letter-spacing: 0.08em;
+button.quiet .num {
+  font-size: 19px;
+  letter-spacing: 0.02em;
 }
 
 button.quiet:hover:not(:disabled) {

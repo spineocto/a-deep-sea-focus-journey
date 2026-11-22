@@ -94,7 +94,7 @@
 
 .card-meta dt {
   font-size: 9px;
-  letter-spacing: 0.32em;
+  letter-spacing: var(--track-label);
   text-transform: uppercase;
   color: #6a5c48;
   margin-bottom: 5px;
@@ -142,7 +142,8 @@
   justify-content: space-between;
   align-items: center;
   font-size: 10px;
-  letter-spacing: 0.36em;
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
   color: var(--light-dim);
   margin-bottom: 28px;
 }
@@ -204,7 +205,7 @@
 
 .codex-item-sub {
   font-size: 9px;
-  letter-spacing: 0.22em;
+  letter-spacing: var(--track-label);
   text-transform: uppercase;
   color: var(--light-faint);
 }

@@ -365,11 +365,11 @@ body.ambient-motion-off .scene[data-state='DISTRACTED'] .bell-bob { animation: n
 .depth-tick-num {
   position: absolute;
   right: 34px;
-  top: -6px;
-  font-family: var(--font-mono);
-  font-weight: 300;
-  font-size: 9px;
-  letter-spacing: 0.1em;
+  top: -7px;
+  font-family: var(--font-display);
+  font-variant-numeric: oldstyle-nums;
+  font-size: 12px;
+  letter-spacing: 0.04em;
   color: var(--light-faint);
   white-space: nowrap;
 }
