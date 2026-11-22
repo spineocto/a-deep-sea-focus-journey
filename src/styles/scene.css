@@ -73,13 +73,13 @@ body.ambient-motion-off .ambient-fx {
     radial-gradient(
       ellipse calc(90% - var(--depth, 0) * 36%) calc(85% - var(--depth, 0) * 36%) at 45% 50%,
       transparent calc(26% - var(--depth, 0) * 14%),
-      rgba(1, 3, 6, calc(0.32 + var(--depth, 0) * 0.55)) 100%
+      rgba(1, 3, 6, calc(0.32 + var(--depth, 0) * 0.28)) 100%
     ),
     linear-gradient(
       180deg,
-      rgba(10, 34, 46, calc(var(--depth, 0) * 0.28)),
-      rgba(6, 10, 34, calc(var(--depth, 0) * 0.42)) 55%,
-      rgba(2, 3, 8, calc(var(--depth, 0) * 0.7))
+      rgba(10, 34, 46, calc(var(--depth, 0) * 0.12)),
+      rgba(6, 10, 34, calc(var(--depth, 0) * 0.16)) 55%,
+      rgba(2, 3, 8, calc(var(--depth, 0) * 0.24))
     );
 }
 
@@ -604,3 +604,10 @@ body.ambient-motion-off .lamp-glow { animation: none; }
   .zone-title.show .zone-title-name { animation: none; }
   .zone-shift.go { animation: none; opacity: 0; }
 }
+
+/* Hadal: the trench walls close in. Near-total ink black at the edges, the
+   dull-red gap in the middle is all there is to see. */
+.scene[data-zone='4']::before {
+  background: radial-gradient(ellipse 52% 78% at 50% 54%, transparent 28%, rgba(0, 0, 0, 0.78) 72%, rgba(0, 0, 0, 0.96) 100%);
+}
+.scene[data-zone='4'] .paper-wash { opacity: 0.1; }
