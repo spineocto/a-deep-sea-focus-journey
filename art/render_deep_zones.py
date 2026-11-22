@@ -303,12 +303,12 @@ def wall(side, pts):
 
 def zone5():
     rng = random.Random(505)
-    arr = vgrad((5, 3, 8), (2, 1, 4), 1.0)
-    arr *= (1 + (fbm(H, W, 530, 2.2) - 0.5) * 0.5)[..., None]
+    arr = vgrad((26, 17, 30), (10, 4, 10), 0.8)
+    arr *= (1 + (fbm(H, W, 530, 2.2) - 0.5) * 0.6)[..., None]
     yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
     # the only colour: a dull red haze rising from the bottom of the trench
     red = np.exp(-(((xx - W * 0.56) / (W * 0.22)) ** 2 + ((yy - H * 1.08) / (H * 0.5)) ** 2))
-    arr += red[..., None] * np.array((62, 8, 12), np.float32)
+    arr += red[..., None] * np.array((130, 16, 22), np.float32)
 
     # --- the huge things, behind the near walls ---
     big = layer()
@@ -322,23 +322,23 @@ def zone5():
         rx, ry = W * (0.58 - 0.012 * k), H * 0.36
         pts = [(cx - rx * math.cos(a) * (1 + 0.05 * math.sin(a * 3)), cy - ry * math.sin(a)) for a in np.linspace(0.05, 1.45, 46)]
         wd = 34 - 2 * k
-        bd.line(pts, fill=(40, 24, 32, 255), width=wd, joint="curve")
-        rd.line([(x - wd * 0.35, y - wd * 0.2) for x, y in pts], fill=(150, 36, 40, 150), width=3, joint="curve")
+        bd.line(pts, fill=(70, 40, 52, 255), width=wd, joint="curve")
+        rd.line([(x - wd * 0.35, y - wd * 0.2) for x, y in pts], fill=(190, 46, 50, 200), width=4, joint="curve")
     spine = [(W * (0.97 - 0.012 * math.sin(i / 4.0)), H * i / 40) for i in range(41)]
-    bd.line(spine, fill=(36, 22, 30, 255), width=58)
+    bd.line(spine, fill=(62, 36, 46, 255), width=58)
     rd.line([(x - 22, y) for x, y in spine], fill=(140, 34, 38, 120), width=3)
     # a limb: a tentacle sagging down the left side, suckers along its length
     limb = [(W * 0.14, -30)] + [(W * (0.16 + 0.26 * (i / 30) ** 1.4), H * (0.55 * (i / 30))) for i in range(1, 31)]
     for i in range(len(limb) - 1):
         f = i / (len(limb) - 1)
-        bd.line([limb[i], limb[i + 1]], fill=(34, 20, 28, 255), width=int(78 * (1 - f) + 10), joint="curve")
+        bd.line([limb[i], limb[i + 1]], fill=(58, 34, 46, 255), width=int(78 * (1 - f) + 10), joint="curve")
         if i % 2 == 0:
             sx, sy = limb[i][0] + (60 * (1 - f) + 6), limb[i][1]
             r = 11 * (1 - f) + 2.5
             rd.ellipse((sx - r, sy - r, sx + r, sy + r), outline=(150, 36, 40, 150), width=2)
     # the eye: half-lidded, deep in the middle distance
     ex, ey, er = W * 0.585, H * 0.80, 150
-    for ring, col in ((er, (52, 12, 16, 255)), (er * 0.78, (92, 18, 20, 255)), (er * 0.5, (40, 8, 12, 255))):
+    for ring, col in ((er, (84, 18, 22, 255)), (er * 0.78, (150, 28, 28, 255)), (er * 0.5, (40, 8, 12, 255))):
         bd.ellipse((ex - ring, ey - ring * 0.82, ex + ring, ey + ring * 0.82), fill=col)
     bd.ellipse((ex - 16, ey - er * 0.5, ex + 16, ey + er * 0.5), fill=(2, 0, 2, 255))   # the slit
     bd.rectangle((ex - er - 4, ey - er * 0.9, ex + er + 4, ey - er * 0.12), fill=(0, 0, 0, 0))
@@ -348,12 +348,12 @@ def zone5():
     rim = rim.filter(ImageFilter.GaussianBlur(1.0))
     # keep the huge things dim: seen, not lit
     ba = np.asarray(big, np.float32)
-    ba[..., 3] *= 0.9
+    ba[..., 3] *= 0.95
     arr = over(arr, Image.fromarray(ba.astype("uint8")))
     arr = over(arr, rim)
 
     # --- three layers of wall per side: far (dim, strata lit faintly), mid, near (ink) ---
-    for L, (depth_k, tone, rimcol) in enumerate(((0.12, (16, 11, 20), None), (0.05, (7, 5, 11), (120, 26, 30)), (0.0, (1, 1, 3), (96, 20, 24)))):
+    for L, (depth_k, tone, rimcol) in enumerate(((0.12, (34, 22, 38), None), (0.05, (12, 8, 16), (160, 34, 38)), (0.0, (1, 1, 3), (96, 20, 24)))):
         for side in ("l", "r"):
             lay = layer()
             dd = ImageDraw.Draw(lay)
