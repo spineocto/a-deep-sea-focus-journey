@@ -299,6 +299,30 @@
         "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
         "timestamp": 1795342471065
       }
+    ],
+    "20. 撰寫完整情境整合測試": [
+      {
+        "executionId": "97db1e95-e235-44f7-a421-b71360c09150",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795342484358
+      },
+      {
+        "executionId": "97db1e95-e235-44f7-a421-b71360c09150",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795342776581
+      }
+    ],
+    "21. 優化與重構": [
+      {
+        "executionId": "97db1e95-e235-44f7-a421-b71360c09150",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795342780102
+      },
+      {
+        "executionId": "97db1e95-e235-44f7-a421-b71360c09150",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795357056147
+      }
     ]
   }
 }

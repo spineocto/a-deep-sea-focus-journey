@@ -12,6 +12,11 @@ export interface ZoneDefinition {
   readonly max: number;
 }
 
+/**
+ * 可選的專注時長選項（分鐘）
+ */
+export type DurationOption = typeof Config.durationOptions[number];
+
 export const Config = {
   // 計時參數
   descentSpeedPerMinute: 12, // 公尺/分鐘

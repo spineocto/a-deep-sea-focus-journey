@@ -8,8 +8,6 @@ import { CREATURE_CARDS } from './codex-manager.js';
 import { createDepthCalculator } from './depth-calculator.js';
 import { distractionDetector } from './distraction-detector.js';
 
-console.log('Deep Sea Focus Journey - Core Loading...');
-
 // 應用程式控制器實例
 const appController = createAppController();
 const depthCalculator = createDepthCalculator();
@@ -345,12 +343,14 @@ function handleTestDistraction(): void {
     // 儲存狀態
     appController.save();
     
-    console.log('Test distraction triggered:', {
-      hiddenRealMs,
-      hiddenDuration,
-      penalty,
-      newRisePenalty: state.depthState.roundRisePenalty
-    });
+    if (import.meta.env.DEV) {
+      console.log('Test distraction triggered:', {
+        hiddenRealMs,
+        hiddenDuration,
+        penalty,
+        newRisePenalty: state.depthState.roundRisePenalty
+      });
+    }
   } else {
     console.warn('Test distraction did not trigger (should not happen)');
   }
@@ -463,7 +463,9 @@ function initApp(): void {
     
     // 切換 Demo Mode
     const newState = demoMode.toggle();
-    console.log(`Demo Mode: ${newState ? 'ENABLED' : 'DISABLED'}`);
+    if (import.meta.env.DEV) {
+      console.log(`Demo Mode: ${newState ? 'ENABLED' : 'DISABLED'}`);
+    }
     
     // 重新載入對應模式的資料
     appController.restoreFromStorage();
@@ -501,8 +503,6 @@ function initApp(): void {
   
   // 13. 啟動 RAF 循環
   requestAnimationFrame(rafLoop);
-  
-  console.log('Deep Sea Focus Journey - Core Loaded!');
 }
 
 // 當 DOM 載入完成後初始化

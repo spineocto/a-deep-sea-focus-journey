@@ -179,7 +179,7 @@ class CodexManagerImpl implements CodexManager {
 
     // 2. 找出所有已達深度的卡片（深度 >= zone 最小值）
     const reachableLockedCards = lockedCards.filter(c => {
-      const cardZone = Config.zones.find(z => z.name === c.zone);
+      const cardZone = this.getZoneForCard(c);
       return cardZone ? totalDepth >= cardZone.min : false;
     });
 
@@ -192,7 +192,7 @@ class CodexManagerImpl implements CodexManager {
     // 4. 所有已達 Zone 的卡片都已解鎖 → 記錄重複獲得
     // 從已解鎖的卡片中選擇已達深度的最深卡片（修正：改為最深）
     const unlockedReachableCards = normalCards.filter(c => {
-      const cardZone = Config.zones.find(z => z.name === c.zone);
+      const cardZone = this.getZoneForCard(c);
       return cardZone ? totalDepth >= cardZone.min && unlockedIds.has(c.id) : false;
     });
 
@@ -220,12 +220,19 @@ class CodexManagerImpl implements CodexManager {
   }
 
   /**
+   * 取得卡片對應的 Zone 定義
+   */
+  private getZoneForCard(card: CreatureCard) {
+    return Config.zones.find(z => z.name === card.zone);
+  }
+
+  /**
    * 找出陣列中最淺的卡片（zone 最小值最小）
    */
   private findShallowestCard(cards: CreatureCard[]): CreatureCard {
     return cards.reduce((prev, curr) => {
-      const prevZone = Config.zones.find(z => z.name === prev.zone);
-      const currZone = Config.zones.find(z => z.name === curr.zone);
+      const prevZone = this.getZoneForCard(prev);
+      const currZone = this.getZoneForCard(curr);
       
       if (!prevZone || !currZone) {
         return prev;
@@ -240,8 +247,8 @@ class CodexManagerImpl implements CodexManager {
    */
   private findDeepestCard(cards: CreatureCard[]): CreatureCard {
     return cards.reduce((prev, curr) => {
-      const prevZone = Config.zones.find(z => z.name === prev.zone);
-      const currZone = Config.zones.find(z => z.name === curr.zone);
+      const prevZone = this.getZoneForCard(prev);
+      const currZone = this.getZoneForCard(curr);
       
       if (!prevZone || !currZone) {
         return prev;
