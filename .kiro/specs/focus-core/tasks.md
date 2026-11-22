@@ -279,7 +279,7 @@
   - 檢查測試覆蓋率（目標: 核心模組 >= 90%）
   - 若有失敗測試，修正後再繼續
 
-- [ ] 11. 實作 Application Controller - 初始化與狀態管理
+- [x] 11. 實作 Application Controller - 初始化與狀態管理
   - 建立 `src/app-controller.ts`
   - 定義 AppGlobalState 介面
   - 實作 AppController 類別
@@ -292,7 +292,7 @@
   - 實作 handleDiveAgain() 方法（使用者重新下潛）
   - _需求: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7, 10.10, 10.11_
 
-- [ ] 12. 實作 Application Controller - Page Visibility API 整合
+- [x] 12. 實作 Application Controller - Page Visibility API 整合
   - 在 `src/app-controller.ts` 新增 setupVisibilityListeners() 方法
   - 實作 visibilitychange 事件處理（document.hidden 判斷）
   - 分頁隱藏時呼叫 timer.markHidden() 並儲存
@@ -300,7 +300,7 @@
   - 實作 pagehide 事件處理（更新 lastSeenAt）
   - _需求: 6.1, 6.2, 6.3, 6.4, 6.13, 4.6, 4.7_
 
-- [ ] 13. 實作 Application Controller - RAF Loop
+- [x] 13. 實作 Application Controller - RAF Loop
   - 在 `src/app-controller.ts` 新增 rafLoop() 方法
   - FOCUSING 狀態：更新計時、深度、檢查完成、定期更新 lastSeenAt
   - DISTRACTED 狀態：倒數 3 秒後自動轉換回 FOCUSING
@@ -309,7 +309,7 @@
   - 使用 requestAnimationFrame 循環
   - _需求: 4.4, 7.1, 7.2, 7.4_
 
-- [ ] 14. 實作 Application Controller - 完成一輪邏輯
+- [x] 14. 實作 Application Controller - 完成一輪邏輯
   - 在 `src/app-controller.ts` 新增 handleRoundComplete() 方法
   - 先呼叫 depthCalculator.commitRound() 完成深度結算
   - 用結算後的 totalDepth 判斷 reachedTarget
@@ -322,7 +322,7 @@
   - 儲存進度
   - _需求: 3.5, 3.6, 3.7, 7.5, 7.6, 8.3, 9.8, 9.9, 9.10, 9.11_
 
-- [ ] 14.1 撰寫 Application Controller 單元測試
+- [x] 14.1 撰寫 Application Controller 單元測試
   - 建立 `src/__tests__/app-controller.test.ts`
   - 測試初始化流程
   - 測試 restoreFromStorage() 處理 FOCUSING 狀態（視為放棄）
@@ -339,7 +339,7 @@
   - 測試重開時 DISTRACTED 狀態視為放棄
   - _需求: 9.2, 9.3, 9.4, 9.5, 9.6, 9.10, 9.11, 9.13, 9.14, 9.15_
 
-- [ ] 14.2 撰寫 Application Controller 整合測試
+- [x] 14.2 撰寫 Application Controller 整合測試
   - 在 `src/__tests__/app-controller.test.ts` 新增整合測試
   - 測試完整一輪流程（開始 → 完成 → 獲得卡片 → 休息 → IDLE）
   - 測試分心流程（開始 → 隱藏 → 顯示 → DISTRACTED → 繼續）
@@ -361,7 +361,7 @@
   - 驗證 (completedRounds + 1) % 4 === 0 時進入 LONG_BREAK
   - _需求: 7.5, 9.6, 9.8, 9.16, 9.17_
 
-- [ ] 15. 實作暫時 UI - HTML 結構
+- [x] 15. 實作暫時 UI - HTML 結構
   - 建立 `index.html`
   - 建立基本 HTML 結構（容器 div）
   - 顯示當前狀態名稱（#state-display）
@@ -373,7 +373,7 @@
   - 顯示已解鎖卡片清單（#codex-display）
   - _需求: 12.1, 12.2, 12.3, 12.4, 12.5, 12.6, 12.7_
 
-- [ ] 16. 實作暫時 UI - 控制按鈕
+- [x] 16. 實作暫時 UI - 控制按鈕
   - 在 `index.html` 新增時長選項按鈕（15/25/45 分鐘）
   - 新增 START DESCENT 按鈕（IDLE 狀態顯示）
   - 新增放棄按鈕（FOCUSING 狀態顯示）
@@ -385,7 +385,7 @@
   - 新增清除資料按鈕（需二次確認）
   - _需求: 12.8, 12.9, 12.10, 12.11, 12.12, 12.13, 12.14, 12.15, 12.16_
 
-- [ ] 17. 實作暫時 UI - 事件綁定與狀態更新
+- [-] 17. 實作暫時 UI - 事件綁定與狀態更新
   - 建立 `src/main.ts` 作為入口
   - 初始化 AppController
   - 綁定所有按鈕事件（addEventListener）

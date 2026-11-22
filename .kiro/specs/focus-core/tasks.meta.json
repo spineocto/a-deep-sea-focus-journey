@@ -182,6 +182,94 @@
         "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
         "timestamp": 1795276425411
       }
+    ],
+    "11. 實作 Application Controller - 初始化與狀態管理": [
+      {
+        "executionId": "97db1e95-e235-44f7-a421-b71360c09150",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795282725931
+      },
+      {
+        "executionId": "97db1e95-e235-44f7-a421-b71360c09150",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795283118039
+      }
+    ],
+    "12. 實作 Application Controller - Page Visibility API 整合": [
+      {
+        "executionId": "97db1e95-e235-44f7-a421-b71360c09150",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795283121577
+      },
+      {
+        "executionId": "97db1e95-e235-44f7-a421-b71360c09150",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795283167501
+      }
+    ],
+    "13. 實作 Application Controller - RAF Loop": [
+      {
+        "executionId": "97db1e95-e235-44f7-a421-b71360c09150",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795283170849
+      },
+      {
+        "executionId": "97db1e95-e235-44f7-a421-b71360c09150",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795283406450
+      }
+    ],
+    "14.1 撰寫 Application Controller 單元測試": [
+      {
+        "executionId": "97db1e95-e235-44f7-a421-b71360c09150",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795283417220
+      }
+    ],
+    "14.2 撰寫 Application Controller 整合測試": [
+      {
+        "executionId": "97db1e95-e235-44f7-a421-b71360c09150",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795283420620
+      }
+    ],
+    "14. 實作 Application Controller - 完成一輪邏輯": [
+      {
+        "executionId": "97db1e95-e235-44f7-a421-b71360c09150",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795283420654
+      }
+    ],
+    "15. 實作暫時 UI - HTML 結構": [
+      {
+        "executionId": "97db1e95-e235-44f7-a421-b71360c09150",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795283424511
+      },
+      {
+        "executionId": "97db1e95-e235-44f7-a421-b71360c09150",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795339863937
+      }
+    ],
+    "16. 實作暫時 UI - 控制按鈕": [
+      {
+        "executionId": "97db1e95-e235-44f7-a421-b71360c09150",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795339867352
+      },
+      {
+        "executionId": "97db1e95-e235-44f7-a421-b71360c09150",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795340985403
+      }
+    ],
+    "17. 實作暫時 UI - 事件綁定與狀態更新": [
+      {
+        "executionId": "97db1e95-e235-44f7-a421-b71360c09150",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795340988998
+      }
     ]
   }
 }
