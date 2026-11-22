@@ -124,9 +124,10 @@ export function updateButtonVisibility(currentState: AppState, endingSeen: boole
     }
   }
   
-  // 啟用/停用 START 按鈕（需選擇時長）
+  // START stays enabled even with no duration selected, so the click can
+  // show a gentle hint (pulse the duration row) rather than doing nothing.
   if (startButton) {
-    (startButton as HTMLButtonElement).disabled = selectedDuration === null;
+    (startButton as HTMLButtonElement).disabled = false;
   }
 }
 
@@ -529,33 +530,44 @@ function initApp(): void {
   const duration45 = document.getElementById('duration-45');
   
   const durationButtons = [duration15, duration25, duration45];
-  
+
+  // Preselect 25 min so START DESCENT is live immediately and the choice
+  // is visible. The owner reported that START did nothing until a duration
+  // was picked, because START is disabled while selectedDuration is null.
+  const selectDuration = (button: HTMLElement | null): void => {
+    const durationStr = button?.getAttribute('data-duration');
+    if (!button || !durationStr) return;
+    selectedDuration = parseInt(durationStr, 10);
+    durationButtons.forEach(btn => btn?.classList.remove('selected'));
+    button.classList.add('selected');
+    updateUI();
+  };
+
   durationButtons.forEach(button => {
-    button?.addEventListener('click', () => {
-      const durationStr = button.getAttribute('data-duration');
-      if (durationStr) {
-        selectedDuration = parseInt(durationStr, 10);
-        
-        // 高亮選中的按鈕
-        durationButtons.forEach(btn => btn?.classList.remove('selected'));
-        button.classList.add('selected');
-        
-        // 更新 UI（啟用 START 按鈕）
-        updateUI();
-      }
-    });
+    button?.addEventListener('click', () => selectDuration(button));
   });
+
+  // Default selection (only in IDLE, i.e. not mid-round after a reload).
+  if (initialState.stateMachine.getState() === AppState.IDLE) {
+    selectDuration(duration25);
+  }
   
   // 3. 綁定 START DESCENT 按鈕
   const startButton = document.getElementById('start-button');
+  const durationSelection = document.getElementById('duration-selection');
   startButton?.addEventListener('click', () => {
-    if (selectedDuration !== null) {
-      const success = appController.handleStartFocus(selectedDuration);
-      if (success) {
-        // 清除選擇
-        selectedDuration = null;
-        durationButtons.forEach(btn => btn?.classList.remove('selected'));
-      }
+    if (selectedDuration === null) {
+      // Nothing selected: give a gentle visual hint instead of doing nothing.
+      durationSelection?.classList.remove('hint');
+      void durationSelection?.offsetWidth; // restart the animation
+      durationSelection?.classList.add('hint');
+      return;
+    }
+    const success = appController.handleStartFocus(selectedDuration);
+    if (success) {
+      // 清除選擇
+      selectedDuration = null;
+      durationButtons.forEach(btn => btn?.classList.remove('selected'));
     }
   });
   

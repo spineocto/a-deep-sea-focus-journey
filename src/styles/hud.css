@@ -181,6 +181,24 @@
   gap: 28px;
 }
 
+/* Gentle hint when START is clicked with no duration chosen. */
+.durations.hint {
+  animation: duration-hint 1s var(--ease-slow);
+}
+
+@keyframes duration-hint {
+  0%, 100% { filter: none; }
+  30% {
+    filter: drop-shadow(0 0 10px rgba(200, 230, 240, 0.7));
+    transform: translateY(-2px);
+  }
+  65% { transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .durations.hint { animation: none; }
+}
+
 button.quiet {
   font-size: 11px;
   letter-spacing: 0.24em;

@@ -84,6 +84,16 @@ describe('Button Visibility Logic', () => {
       const testDistractionButton = mockElements['test-distraction-button'] as HTMLButtonElement;
       expect(testDistractionButton?.disabled).toBe(true);
     });
+
+    it('should keep START enabled so a click can hint when no duration is chosen', () => {
+      // Regression: START used to be disabled until a duration was picked,
+      // so clicking it did nothing. It must stay enabled; the click handler
+      // guards the no-selection case and shows a gentle hint instead.
+      updateButtonVisibility(AppState.IDLE, false);
+
+      const startButton = mockElements['start-button'] as HTMLButtonElement;
+      expect(startButton?.disabled).toBe(false);
+    });
   });
 
   describe('FOCUSING state', () => {
