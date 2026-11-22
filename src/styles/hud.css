@@ -269,3 +269,56 @@ button:disabled {
   .ring-oxygen,
   .depth-rail-marker { transition: none; }
 }
+
+/* The warning line is the one caption that stands out. */
+.scene[data-state='DISTRACTED'] .caption {
+  color: var(--light);
+  letter-spacing: 0.36em;
+  animation: caption-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes caption-pulse {
+  50% { opacity: 0.55; }
+}
+
+/* ---- Hadal (zone 5): the UI is slightly wrong, rarely and briefly ---- */
+.scene[data-zone='4'] .ring-oxygen {
+  stroke: rgba(var(--wrong), 0.85);
+  filter: drop-shadow(0 0 3px rgba(var(--wrong), 0.5));
+}
+
+.scene[data-zone='4'] .timer {
+  animation: glitch-a 19s steps(1, end) infinite;
+}
+
+.scene[data-zone='4'] .caption {
+  animation: glitch-b 23s steps(1, end) infinite;
+}
+
+.scene[data-zone='4'] .depth-readout {
+  animation: glitch-b 31s steps(1, end) 7s infinite;
+}
+
+@keyframes glitch-a {
+  0%, 93%, 100% { transform: none; }
+  94% { transform: translate(2px, 0); text-shadow: -3px 0 rgba(var(--wrong), 0.7), 3px 0 rgba(120, 200, 220, 0.35); }
+  95% { transform: translate(-3px, 1px) skewX(-3deg); text-shadow: 3px 0 rgba(var(--wrong), 0.7); }
+  96% { transform: none; }
+}
+
+@keyframes glitch-b {
+  0%, 96%, 100% { transform: none; opacity: 1; }
+  97% { transform: translateX(3px); opacity: 0.4; }
+  98% { transform: translateX(-2px); opacity: 0.8; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene[data-state='DISTRACTED'] .caption,
+  .scene[data-zone='4'] .timer,
+  .scene[data-zone='4'] .caption,
+  .scene[data-zone='4'] .depth-readout { animation: none; }
+}
+
+body.ambient-motion-off .scene[data-zone='4'] .timer,
+body.ambient-motion-off .scene[data-zone='4'] .caption,
+body.ambient-motion-off .scene[data-zone='4'] .depth-readout { animation: none; }

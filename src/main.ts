@@ -9,6 +9,8 @@ import { createDepthCalculator } from './depth-calculator.js';
 import { distractionDetector } from './distraction-detector.js';
 import { createAmbientLayer, zoneIndexForDepth } from './ambient.js';
 import { Config } from './config.js';
+import { CREATURE_ART } from './creature-art.js';
+import eyeUrl from '../art/out/eye.webp';
 import bellNormalUrl from '../art/out/bell-normal.webp';
 import bellAlertUrl from '../art/out/bell-alert.webp';
 import bellSleepingUrl from '../art/out/bell-sleeping.webp';
@@ -160,10 +162,11 @@ function renderCodex(unlocked: { cardId: string; obtainedCount: number }[]): voi
   if (!list) return;
   list.innerHTML = CREATURE_CARDS.map(card => {
     const hit = unlocked.find(u => u.cardId === card.id);
+    const art = CREATURE_ART[card.id] ?? '';
     if (!hit) {
-      return `<div class="codex-item locked"><div><span class="codex-item-name">?</span><span class="codex-item-sub">${card.zone}</span></div></div>`;
+      return `<div class="codex-item locked"><div class="codex-art"><img src="${art}" alt="" /><span class="codex-q">?</span></div><span class="codex-item-name">Unknown</span><span class="codex-item-sub">${card.zone}</span></div>`;
     }
-    return `<div class="codex-item"><div><span class="codex-item-name">${card.commonNameEn}</span><span class="codex-item-sub">${card.zone}</span></div><span class="codex-item-count mono">x${hit.obtainedCount}</span></div>`;
+    return `<div class="codex-item"><div class="codex-art lit"><img src="${art}" alt="${card.commonNameEn}" /></div><span class="codex-item-name">${card.commonNameEn}</span><span class="codex-item-sub">${card.zone} <span class="mono">x${hit.obtainedCount}</span></span></div>`;
   }).join('');
 }
 
@@ -317,6 +320,20 @@ function showCardReveal(cardId: string, isDuplicate: boolean): void {
   cardDepthRange.textContent = card.depthRange;
   cardFacts.textContent = card.facts;
 
+  // Searchlight reveal: new species get the sweep, duplicates show lit at once.
+  const art = CREATURE_ART[card.id] ?? '';
+  const stage = document.getElementById('card-art');
+  (document.getElementById('card-art-sil') as HTMLImageElement | null)?.setAttribute('src', art);
+  (document.getElementById('card-art-lit') as HTMLImageElement | null)?.setAttribute('src', art);
+  if (stage) {
+    stage.classList.remove('reveal-run', 'reveal-done');
+    void stage.offsetWidth; // restart the CSS animation
+    stage.classList.add(isDuplicate ? 'reveal-done' : 'reveal-run');
+  }
+  // The ending card is followed by the final fixed line.
+  const signal = document.getElementById('card-signal');
+  signal?.classList.toggle('hidden', !card.isEndingCard);
+
   // 顯示模態框
   modal.classList.add('active');
 }
@@ -375,6 +392,7 @@ function handleTestDistraction(): void {
   if (event.triggered) {
     // 轉換到 DISTRACTED 狀態
     state.stateMachine.transition({ type: 'DISTRACTION_DETECTED' });
+    appController.markDistractionStart();
     
     // 計算上浮懲罰
     const penalty = distractionDetector.calculateRisePenalty(
@@ -427,6 +445,8 @@ function initApp(): void {
     ['bell-normal', bellNormalUrl],
     ['bell-alert', bellAlertUrl],
     ['bell-sleeping', bellSleepingUrl],
+    ['eye-far', eyeUrl],
+    ['eye-giant', eyeUrl],
   ];
   for (const [id, url] of sprites) {
     const img = document.getElementById(id) as HTMLImageElement | null;

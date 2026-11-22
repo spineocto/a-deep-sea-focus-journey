@@ -170,3 +170,102 @@ body.ambient-motion-off .ambient-fx {
 body.ambient-motion-off .bell-bob {
   animation: none;
 }
+
+/* ---- Eyes -------------------------------------------------------------
+   Far eye: always there, small, faint, blurred, top right. A hint.
+   Giant eye: opens for ~3 s when the tab was hidden too long (the
+   DISTRACTED state, 3 s in Config.distractedDurationSec). */
+.eye {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.eye-far {
+  right: 3vw;
+  top: 6vh;
+  width: 13vw;
+  opacity: calc(0.1 + var(--depth-dark, 0) * 0.07);
+  filter: blur(2.5px);
+  transform-origin: 50% 50%;
+  animation: eye-blink 29s ease-in-out infinite;
+}
+
+.eye-giant {
+  left: 22vw;
+  top: 50vh;
+  width: 86vw;
+  opacity: 0;
+  filter: blur(7px);
+  transform: translateY(-50%) scaleY(0.04);
+}
+
+.scene[data-state='DISTRACTED'] .eye-giant {
+  animation: eye-open 3s ease-in-out forwards;
+}
+
+.dread {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 42% 55%, rgba(1, 3, 6, 0.2), rgba(1, 2, 4, 0.82));
+}
+
+.scene[data-state='DISTRACTED'] .dread {
+  animation: dread 3s ease-in-out forwards;
+}
+
+.scene[data-state='DISTRACTED'] .bell-bob {
+  animation: bell-jolt 0.9s ease-out 1, bell-sway 11s var(--ease-slow) 0.9s infinite;
+}
+
+@keyframes eye-blink {
+  0%, 94%, 100% { transform: scaleY(1); }
+  96% { transform: scaleY(0.06); }
+  97.5% { transform: scaleY(1); }
+}
+
+@keyframes eye-open {
+  0% { opacity: 0; transform: translateY(-50%) scaleY(0.04); }
+  22% { opacity: 0.35; transform: translateY(-50%) scaleY(0.07); }
+  42% { opacity: 0.72; transform: translateY(-50%) scaleY(1); }
+  78% { opacity: 0.72; transform: translateY(-50%) scaleY(1); }
+  100% { opacity: 0; transform: translateY(-50%) scaleY(0.5); }
+}
+
+@keyframes dread {
+  0% { opacity: 0; }
+  30% { opacity: 0.9; }
+  75% { opacity: 0.9; }
+  100% { opacity: 0; }
+}
+
+@keyframes bell-jolt {
+  0% { transform: translate(0, 0) rotate(0); }
+  15% { transform: translate(-6px, 4px) rotate(-0.9deg); }
+  35% { transform: translate(5px, -3px) rotate(0.7deg); }
+  60% { transform: translate(-2px, 2px) rotate(-0.3deg); }
+  100% { transform: translate(0, 0) rotate(0); }
+}
+
+@media (max-aspect-ratio: 1/1) {
+  .eye-far { width: 30vw; right: 6vw; top: 5vh; }
+  .eye-giant { left: -20vw; width: 140vw; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .eye-far { animation: none; }
+  /* No shaking or blinking; the eye simply fades in and out. */
+  .scene[data-state='DISTRACTED'] .eye-giant { animation: eye-fade 3s linear forwards; }
+  .scene[data-state='DISTRACTED'] .bell-bob { animation: none; }
+}
+
+@keyframes eye-fade {
+  0%, 100% { opacity: 0; transform: translateY(-50%) scaleY(1); }
+  30%, 70% { opacity: 0.6; transform: translateY(-50%) scaleY(1); }
+}
+
+body.ambient-motion-off .eye-far { animation: none; }
+body.ambient-motion-off .scene[data-state='DISTRACTED'] .bell-bob { animation: none; }

@@ -70,6 +70,9 @@ export interface AppController {
   save(): void;
   restoreFromStorage(): void;
   
+  // 手動分心測試用：讓 DISTRACTED 狀態從現在開始計時 3 秒
+  markDistractionStart(): void;
+
   // 休息進度（供 UI 顯示剩餘時間與氧氣回充；非休息狀態回傳 null）
   getBreakProgress(): { remainingMs: number; durationMs: number } | null;
 
@@ -376,6 +379,13 @@ export class AppControllerImpl implements AppController {
     this.timerState = null;
   }
   
+  /**
+   * 手動分心測試呼叫：DISTRACTED 倒數從現在開始（真實分頁隱藏路徑會自己設定）
+   */
+  markDistractionStart(): void {
+    this.distractedStartAt = Date.now();
+  }
+
   /**
    * 休息進度（只在 SHORT_BREAK / LONG_BREAK 有值）
    */

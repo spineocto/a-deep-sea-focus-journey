@@ -10,6 +10,11 @@
   </head>
   <body>
     <main id="app" class="scene" data-mood="normal" data-state="IDLE" data-zone="0">
+      <!-- A resident eye, far away and faint. It only opens wide when you look away. -->
+      <img class="eye eye-far" id="eye-far" alt="" aria-hidden="true" />
+      <img class="eye eye-giant" id="eye-giant" alt="" aria-hidden="true" />
+      <div class="dread" aria-hidden="true"></div>
+
       <!-- The bell hangs on its cable; the Dumbo octopus rides inside. -->
       <div class="bell-anchor">
         <div class="bell-bob">
@@ -94,6 +99,10 @@
       <div id="card-reveal" class="card-reveal" role="dialog" aria-modal="true" aria-labelledby="card-name">
         <article class="card-content">
           <div class="card-kicker" id="card-kicker">FIELD LOG</div>
+          <div class="reveal-stage" id="card-art" aria-hidden="true">
+            <img class="reveal-sil" id="card-art-sil" alt="" />
+            <img class="reveal-lit" id="card-art-lit" alt="" />
+          </div>
           <h2 class="card-title" id="card-name">Unknown</h2>
           <div class="card-zh" id="card-zh"></div>
           <div class="card-subtitle" id="card-scientific-name"></div>
@@ -102,6 +111,7 @@
             <div><dt>Depth</dt><dd class="mono" id="card-depth-range"></dd></div>
           </dl>
           <p class="card-facts" id="card-facts"></p>
+          <p class="card-signal hidden" id="card-signal">SIGNAL DETECTED BELOW THE KNOWN DEPTH.</p>
           <button id="card-close-button" class="quiet">CONTINUE</button>
         </article>
       </div>

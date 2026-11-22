@@ -94,7 +94,7 @@
   bottom: 0;
   width: min(360px, 92vw);
   padding: 32px 28px;
-  background: linear-gradient(90deg, transparent, rgba(2, 5, 10, 0.88) 18%);
+  background: linear-gradient(90deg, rgba(2, 5, 10, 0), rgba(2, 5, 10, 0.97) 28px);
   overflow-y: auto;
   z-index: 20;
   animation: fade-in 0.6s var(--ease-slow);
@@ -111,22 +111,50 @@
 }
 
 .codex-list {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 26px 18px;
 }
 
 .codex-item {
   display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  padding-bottom: 14px;
-  border-bottom: 1px solid var(--line);
+  flex-direction: column;
+  gap: 4px;
+}
+
+.codex-art {
+  position: relative;
+  aspect-ratio: 1;
+  border: 1px solid var(--line);
+  background: radial-gradient(circle at 50% 45%, rgba(40, 70, 90, 0.25), transparent 70%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.codex-art img {
+  width: 86%;
+  height: 86%;
+  object-fit: contain;
+}
+
+/* Locked: the same drawing as a pale silhouette, plus a question mark. */
+.codex-item.locked .codex-art img {
+  filter: brightness(0) invert(1) opacity(0.1) blur(0.5px);
+}
+
+.codex-q {
+  position: absolute;
+  font-family: var(--font-display);
+  font-size: 44px;
+  font-weight: 300;
+  color: var(--light-faint);
 }
 
 .codex-item-name {
   font-family: var(--font-display);
-  font-size: 20px;
+  font-size: 18px;
+  line-height: 1.15;
   color: var(--light);
 }
 
@@ -135,17 +163,111 @@
 }
 
 .codex-item-sub {
-  display: block;
-  margin-top: 3px;
-  font-size: 10px;
+  font-size: 9px;
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--light-faint);
 }
 
-.codex-item-count {
-  font-size: 12px;
-  color: var(--light-dim);
+.codex-item-sub .mono {
+  letter-spacing: 0.05em;
+  text-transform: none;
+}
+
+/* ---- Searchlight reveal ----------------------------------------------
+   A small pool of light sweeps across the silhouette, then opens up and
+   shows the whole animal. The silhouette is the same drawing. */
+.reveal-stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  margin-bottom: 18px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: radial-gradient(circle at 50% 50%, rgba(30, 55, 72, 0.3), rgba(2, 5, 10, 0.2));
+}
+
+.reveal-stage img {
+  position: absolute;
+  inset: 4%;
+  width: 92%;
+  height: 92%;
+  object-fit: contain;
+}
+
+.reveal-sil {
+  filter: brightness(0) invert(1) opacity(0.1);
+}
+
+.reveal-lit {
+  -webkit-mask-image: radial-gradient(circle closest-side, #000 55%, transparent 100%);
+  mask-image: radial-gradient(circle closest-side, #000 55%, transparent 100%);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 42% 80%;
+  mask-size: 42% 80%;
+  -webkit-mask-position: -40% 50%;
+  mask-position: -40% 50%;
+  opacity: 0;
+}
+
+.reveal-stage::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle closest-side, rgba(220, 236, 232, 0.16), transparent) no-repeat;
+  background-size: 42% 80%;
+  background-position: -40% 50%;
+  opacity: 0;
+}
+
+.reveal-stage.reveal-run .reveal-lit {
+  animation: reveal-mask 4.2s ease-in-out 0.8s forwards;
+}
+
+.reveal-stage.reveal-run::after {
+  animation: reveal-beam 4.2s ease-in-out 0.8s forwards;
+}
+
+.reveal-stage.reveal-done .reveal-lit {
+  opacity: 1;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+@keyframes reveal-mask {
+  0% { opacity: 1; -webkit-mask-size: 42% 80%; mask-size: 42% 80%; -webkit-mask-position: -40% 50%; mask-position: -40% 50%; }
+  55% { opacity: 1; -webkit-mask-size: 42% 80%; mask-size: 42% 80%; -webkit-mask-position: 50% 50%; mask-position: 50% 50%; }
+  100% { opacity: 1; -webkit-mask-size: 260% 260%; mask-size: 260% 260%; -webkit-mask-position: 50% 50%; mask-position: 50% 50%; }
+}
+
+@keyframes reveal-beam {
+  0% { opacity: 1; background-position: -40% 50%; }
+  55% { opacity: 1; background-position: 50% 50%; }
+  100% { opacity: 0; background-position: 50% 50%; }
+}
+
+.card-signal {
+  margin-bottom: 26px;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.3em;
+  line-height: 1.7;
+  color: var(--light);
+  opacity: 0;
+  animation: fade-in 2.4s var(--ease-slow) 5.4s forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal-stage.reveal-run .reveal-lit {
+    animation: none;
+    opacity: 1;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  .reveal-stage.reveal-run::after { animation: none; }
+  .card-signal { animation-delay: 0.6s; }
 }
 
 /* ---- Debug ------------------------------------------------------------ */
