@@ -269,6 +269,35 @@
         "executionId": "97db1e95-e235-44f7-a421-b71360c09150",
         "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
         "timestamp": 1795340988998
+      },
+      {
+        "executionId": "97db1e95-e235-44f7-a421-b71360c09150",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795342278146
+      }
+    ],
+    "18. 實作暫時 UI - 手動分心測試功能": [
+      {
+        "executionId": "97db1e95-e235-44f7-a421-b71360c09150",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795342281736
+      },
+      {
+        "executionId": "97db1e95-e235-44f7-a421-b71360c09150",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795342427992
+      }
+    ],
+    "19. Checkpoint - 手動測試基本流程": [
+      {
+        "executionId": "97db1e95-e235-44f7-a421-b71360c09150",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795342431812
+      },
+      {
+        "executionId": "97db1e95-e235-44f7-a421-b71360c09150",
+        "chatSessionId": "sess_90512312-4c21-4771-9f3b-5c91aa9f39d4",
+        "timestamp": 1795342471065
       }
     ]
   }

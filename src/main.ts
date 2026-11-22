@@ -6,6 +6,7 @@ import { demoMode } from './demo-mode.js';
 import { storage } from './storage.js';
 import { CREATURE_CARDS } from './codex-manager.js';
 import { createDepthCalculator } from './depth-calculator.js';
+import { distractionDetector } from './distraction-detector.js';
 
 console.log('Deep Sea Focus Journey - Core Loading...');
 
@@ -285,6 +286,77 @@ function hideCardReveal(): void {
 }
 
 /**
+ * 手動觸發分心測試
+ * 
+ * 模擬隱藏 6 秒（超過 5 秒閾值）的分心事件。
+ * 只在 FOCUSING 狀態可用。
+ */
+function handleTestDistraction(): void {
+  const state = appController.getState();
+  const currentState = state.stateMachine.getState();
+  
+  // 只在 FOCUSING 狀態可用
+  if (currentState !== AppState.FOCUSING) {
+    console.warn('Test distraction only available in FOCUSING state');
+    return;
+  }
+  
+  const timerState = state.timerState;
+  if (!timerState) {
+    console.error('Timer state not found');
+    return;
+  }
+  
+  // 模擬隱藏 6 秒（超過 5 秒閾值）
+  const nowMs = Date.now();
+  const sixSecondsAgo = nowMs - 6000;
+  
+  // 手動設定 hiddenAt 為 6 秒前
+  timerState.hiddenAt = sixSecondsAgo;
+  
+  // 呼叫 markVisible 計算隱藏時長
+  const { state: newTimerState, hiddenRealMs, hiddenDuration } = timer.markVisible(
+    timerState,
+    nowMs
+  );
+  
+  // 更新 timer state
+  state.timerState = newTimerState;
+  
+  // 判斷是否觸發分心（應該會觸發，因為 6 秒 > 5 秒）
+  const event = distractionDetector.checkDistraction(hiddenRealMs);
+  
+  if (event.triggered) {
+    // 轉換到 DISTRACTED 狀態
+    state.stateMachine.transition({ type: 'DISTRACTION_DETECTED' });
+    
+    // 計算上浮懲罰
+    const penalty = distractionDetector.calculateRisePenalty(
+      state.depthState.roundDescentDepth
+    );
+    
+    // 應用上浮懲罰
+    const depthCalculator = createDepthCalculator();
+    state.depthState = depthCalculator.applyRisePenalty(state.depthState, penalty);
+    
+    // 將隱藏時間加入懲罰
+    state.timerState = timer.applyDistractionPenalty(state.timerState, hiddenDuration);
+    
+    // 儲存狀態
+    appController.save();
+    
+    console.log('Test distraction triggered:', {
+      hiddenRealMs,
+      hiddenDuration,
+      penalty,
+      newRisePenalty: state.depthState.roundRisePenalty
+    });
+  } else {
+    console.warn('Test distraction did not trigger (should not happen)');
+  }
+}
+
+/**
  * RAF 循環
  */
 function rafLoop(): void {
@@ -418,10 +490,16 @@ function initApp(): void {
     hideCardReveal();
   });
   
-  // 11. 初始化 UI
+  // 11. 綁定「測試分心」按鈕
+  const testDistractionButton = document.getElementById('test-distraction-button');
+  testDistractionButton?.addEventListener('click', () => {
+    handleTestDistraction();
+  });
+  
+  // 12. 初始化 UI
   updateUI();
   
-  // 12. 啟動 RAF 循環
+  // 13. 啟動 RAF 循環
   requestAnimationFrame(rafLoop);
   
   console.log('Deep Sea Focus Journey - Core Loaded!');
