@@ -7,10 +7,14 @@ import { storage } from './storage.js';
 import { CREATURE_CARDS } from './codex-manager.js';
 import { createDepthCalculator } from './depth-calculator.js';
 import { distractionDetector } from './distraction-detector.js';
+import { createAmbientLayer } from './ambient.js';
 
 // 應用程式控制器實例
 const appController = createAppController();
 const depthCalculator = createDepthCalculator();
+// 動效層：背景 crossfade + 雪 / 氣泡 / 光柱 / 呼吸光 / 聲納
+// （背景 PNG 本身不動，動的是蓋在上面的透明層）
+const ambient = createAmbientLayer();
 
 // 選定的時長（分鐘）
 let selectedDuration: number | null = null;
@@ -236,7 +240,15 @@ function updateUI(): void {
     }
   }
   
-  // 10. 更新按鈕可見性
+  // 10. 更新動效層：用本輪淨深度（不是已結算的總深度），
+  // 這樣專注進行中背景就會慢慢下沉、慢慢變暗。
+  ambient.update(
+    depthCalculator.getCurrentTotalDepth(depthState),
+    currentState,
+    Date.now(),
+  );
+
+  // 11. 更新按鈕可見性
   updateButtonVisibility(currentState, state.endingSeen);
 }
 
@@ -374,6 +386,22 @@ function rafLoop(): void {
  * 初始化應用程式
  */
 function initApp(): void {
+  // 0. 掛載動效層（背景 + 透明動效，尊重 prefers-reduced-motion）
+  ambient.mount();
+  const motionToggle = document.getElementById('motion-toggle');
+  const syncMotionToggle = (): void => {
+    if (motionToggle) {
+      motionToggle.textContent = ambient.isMotionEnabled()
+        ? 'Motion: On'
+        : 'Motion: Off';
+    }
+  };
+  syncMotionToggle();
+  motionToggle?.addEventListener('click', () => {
+    ambient.setMotionEnabled(!ambient.isMotionEnabled());
+    syncMotionToggle();
+  });
+
   // 1. 初始化 AppController（載入存檔、註冊事件監聽器）
   appController.init();
   

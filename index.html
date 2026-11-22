@@ -345,6 +345,58 @@
         display: none !important;
       }
 
+      /* Ambient motion layer: static zone PNGs below, transparent
+         motion (light cone, snow, bubbles, sonar) above them.
+         The layer never intercepts clicks. */
+      .ambient {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        overflow: hidden;
+      }
+
+      .ambient-bg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .ambient-light {
+        position: absolute;
+        top: -10%;
+        left: 30%;
+        width: 40%;
+        height: 120%;
+        background: linear-gradient(180deg, rgba(180, 220, 210, 0.35), transparent 70%);
+        transform-origin: top center;
+        mix-blend-mode: screen;
+      }
+
+      .ambient-fx {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+
+      #app {
+        position: relative;
+        z-index: 1;
+      }
+
+      body.ambient-motion-off .ambient-light,
+      body.ambient-motion-off .ambient-fx {
+        display: none;
+      }
+
+      /* Timer glow breathes with --ambient-breath (0-1, ~5.2 s cycle). */
+      #time-display {
+        text-shadow: 0 0 calc(10px + var(--ambient-breath, 0.5) * 12px) rgba(77, 208, 225, 0.7);
+      }
+
       @keyframes fadeIn {
         from { opacity: 0; }
         to { opacity: 1; }
@@ -470,6 +522,7 @@
           <div class="test-buttons">
             <button id="test-distraction-button">Test Distraction</button>
             <button id="demo-mode-toggle">Toggle Demo Mode</button>
+            <button id="motion-toggle">Motion: On</button>
             <button id="clear-data-button" class="danger">Clear All Data</button>
           </div>
         </div>
