@@ -4,20 +4,116 @@
 
 Built with [Kiro](https://kiro.dev) for **Kiroween 2026** — Costume Contest category.
 
-## What it does
-- Pick 15 / 25 / 45 minutes and press **START DESCENT** — your diving bell sinks as you focus.
-- Five ocean zones, darker and stranger all the way to the Mariana Trench (10,900 m).
-- Finish a round: the searchlight reveals a new deep-sea creature for your codex.
-- Switch tabs mid-focus: a giant eye slowly opens outside the porthole, and the bell rises.
+## 專案簡介
 
-## Live demo
-_Coming soon_
+focus-core 是深海番茄鐘 web app 的核心計時與狀態管理模組。此模組實作專注計時、深度追蹤、分心懲罰、圖鑑解鎖邏輯與狀態持久化，但不包含視覺美術與動畫。目標是建立一個可測試、時間戳驅動、狀態明確的計時核心，為後續美術整合打好基礎。
+
+## 功能特色
+
+- **專注計時**：基於時間戳的精確計時系統，支援 15/25/45 分鐘專注輪
+- **深度追蹤**：專注時間轉換為潛水球深度（12 m/min），目標深度 10,900m（馬里亞納海溝）
+- **分心偵測**：使用 Page Visibility API 偵測分頁切換，超過 5 秒觸發上浮懲罰（20%）
+- **圖鑑系統**：收集 6 種深海生物卡片，涵蓋 5 個深度區間（Sunlit → Hadal）
+- **Demo 模式**：時間加速 60 倍，獨立儲存，用於快速展示與測試
+- **狀態持久化**：localStorage 自動儲存進度，關閉瀏覽器後可恢復
+- **休息機制**：短休息（5 分鐘）與長休息（15 分鐘，每 4 輪）
+- **終局狀態**：達到 10,900m 後觸發特殊終局並解鎖最終生物
+
+## 技術架構
+
+- **語言**：TypeScript（嚴格模式）
+- **建置工具**：Vite 5.0
+- **測試框架**：Vitest 1.0
+- **屬性測試**：fast-check 3.15（用於驗證時間戳穩定性、深度單調性等屬性）
+- **測試覆蓋**：341 個測試，16 個測試檔案
+
+## 安裝與執行
+
+```bash
+# 安裝依賴
+npm install
+
+# 啟動開發伺服器（http://localhost:5173）
+npm run dev
+
+# 執行測試
+npm test
+
+# 執行測試並產生覆蓋率報告
+npm run test:coverage
+
+# 建置生產版本
+npm run build
+
+# 預覽生產版本
+npm run preview
+```
+
+## 模組說明
+
+focus-core 包含 9 個核心模組：
+
+1. **Config** (`src/config.ts`)  
+   集中設定檔，包含所有可調整參數（下沉速度、懲罰比例、休息時長、深度區間等）
+
+2. **State Machine** (`src/state-machine.ts`)  
+   狀態機，管理 IDLE、FOCUSING、DISTRACTED、SHORT_BREAK、LONG_BREAK、ENDING 等狀態與轉換邏輯
+
+3. **Timer** (`src/timer.ts`)  
+   計時器模組，使用時間戳計算專注時間與剩餘時間，支援 Demo 模式加速與分心時段排除
+
+4. **Depth Calculator** (`src/depth-calculator.ts`)  
+   深度計算器，根據專注時間計算下沉深度，處理上浮懲罰與深度結算，判斷當前深度區間
+
+5. **Distraction Detector** (`src/distraction-detector.ts`)  
+   分心偵測器，判斷分頁隱藏時長是否超過閾值（5 秒），計算上浮懲罰（20%，累積上限 50%）
+
+6. **Codex Manager** (`src/codex-manager.ts`)  
+   圖鑑管理器，負責卡片選擇邏輯（最淺優先）、解鎖紀錄與終局卡片（Supergiant amphipod）特殊處理
+
+7. **Storage** (`src/storage.ts`)  
+   localStorage 持久化模組，負責儲存與載入進度、設定、圖鑑，支援 Demo 模式隔離
+
+8. **Demo Mode** (`src/demo-mode.ts`)  
+   演示模式管理，時間加速 60 倍，使用獨立 localStorage key，不影響正常進度
+
+9. **Application Controller** (`src/main.ts`)  
+   應用程式控制器，整合所有模組，處理 Page Visibility API、RAF Loop、狀態轉換邏輯與 UI 更新
+
+## 測試覆蓋
+
+- **測試檔案數**：16 個
+- **測試案例數**：341 個
+- **測試類型**：
+  - 單元測試：涵蓋所有核心模組的邏輯驗證
+  - 屬性測試：使用 fast-check 驗證時間戳穩定性、深度單調性、Zone 判斷一致性等屬性
+  - 整合測試：驗證完整流程（專注 → 完成 → 獲得卡片 → 休息 → IDLE）
+
+測試涵蓋範圍包括：
+- 時間戳計算與 Demo 模式加速
+- 深度計算與上浮懲罰邏輯
+- 狀態機轉換（合法與非法轉換）
+- 圖鑑選擇邏輯（最淺優先、Zone 限制、終局卡片）
+- localStorage 儲存與載入往返
+- 分心偵測（5 秒閾值、時間排除、懲罰上限）
+- 關頁重開邏輯（lastSeenAt 計算）
+
+## 開發狀態
+
+✅ **focus-core 核心邏輯已完成**  
+- 所有 9 個核心模組實作完成並通過測試
+- 暫時 UI 已實作，可完整測試所有功能
+- 測試覆蓋完整（341 個測試全部通過）
+
+⏳ **等待美術整合**  
+- 深海場景視覺設計
+- 潛水球動畫與深度指示器
+- 生物卡片插畫與揭露動畫
+- 分心觸發的視覺效果（巨眼、陰影）
+- 音效整合（sonar ping、deep rumble）
 
 ## How Kiro was used
 _Spec-driven development, steering docs, hooks — write-up coming soon._ See [`/.kiro`](.kiro).
-
-## Run locally
-_Coming soon_
 
 ## License
 MIT
