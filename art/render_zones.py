@@ -59,47 +59,52 @@ ZONES = [
     {
         "name": "zone-1-sunlit",
         "depth": "0-200m",
-        "top": (18, 52, 68),      # lighter teal
-        "bottom": (8, 28, 42),     # deeper teal
+        "top": (28, 65, 85),       # bright teal - much lighter
+        "bottom": (12, 38, 56),    # medium teal
         "eye_alpha": 0,            # no eye in sunlit
-        "particles_brightness": (180, 195, 200),
-        "particles_alpha_mult": 1.2,
+        "particles_brightness": (200, 215, 220),
+        "particles_alpha_mult": 1.5,
+        "vignette_mult": 0.7,      # less vignette in bright zone
     },
     {
         "name": "zone-2-twilight",
         "depth": "200-1000m",
-        "top": (12, 26, 48),       # indigo
-        "bottom": (4, 10, 22),     # dark indigo
-        "eye_alpha": 70,           # faint eye starts here
-        "particles_brightness": (170, 185, 190),
+        "top": (15, 32, 58),       # indigo - noticeable drop
+        "bottom": (5, 12, 28),     # dark indigo
+        "eye_alpha": 80,           # faint eye starts here
+        "particles_brightness": (160, 175, 185),
         "particles_alpha_mult": 1.0,
+        "vignette_mult": 1.0,
     },
     {
         "name": "zone-3-midnight",
         "depth": "1000-4000m",
-        "top": (6, 14, 26),        # blue-black
-        "bottom": (2, 4, 10),      # very dark blue
-        "eye_alpha": 90,           # eye slightly more visible
-        "particles_brightness": (150, 165, 170),
-        "particles_alpha_mult": 0.8,
+        "top": (8, 16, 32),        # blue-black - clear difference
+        "bottom": (2, 5, 14),      # very dark blue
+        "eye_alpha": 110,          # eye more visible
+        "particles_brightness": (140, 155, 165),
+        "particles_alpha_mult": 0.7,
+        "vignette_mult": 1.2,
     },
     {
         "name": "zone-4-abyssal",
         "depth": "4000-6000m",
-        "top": (4, 6, 14),         # ink black with violet hint
-        "bottom": (1, 2, 6),       # near black
-        "eye_alpha": 110,          # eye more prominent
-        "particles_brightness": (130, 140, 150),
-        "particles_alpha_mult": 0.6,
+        "top": (5, 8, 18),         # ink black with violet hint
+        "bottom": (1, 2, 8),       # near black
+        "eye_alpha": 140,          # eye prominent
+        "particles_brightness": (120, 130, 145),
+        "particles_alpha_mult": 0.5,
+        "vignette_mult": 1.4,
     },
     {
         "name": "zone-5-hadal",
         "depth": "6000m+",
-        "top": (2, 3, 8),          # absolute black with dark red hint
-        "bottom": (0, 1, 3),       # pure darkness
-        "eye_alpha": 130,          # eye most visible in deepest zone
-        "particles_brightness": (110, 120, 130),
-        "particles_alpha_mult": 0.4,
+        "top": (3, 4, 10),         # almost black with subtle red
+        "bottom": (1, 1, 4),       # pure darkness
+        "eye_alpha": 170,          # eye most visible
+        "particles_brightness": (100, 110, 125),
+        "particles_alpha_mult": 0.3,
+        "vignette_mult": 1.6,      # strongest vignette
     },
 ]
 
@@ -156,11 +161,12 @@ def render_zone(zone_config, width, height, scale):
     t = (yy / H)[..., None]
     sea = top * (1 - t) + bot * t
     
-    # --- Vignette ---
+    # --- Vignette (adjust intensity per zone) ---
+    vignette_strength = VIGNETTE_INTENSITY * zone_config.get("vignette_mult", 1.0)
     cx0 = W * VIGNETTE_CENTER_X
     cy0 = H * VIGNETTE_CENTER_Y
     dist = np.sqrt(((xx - cx0) / W) ** 2 + ((yy - cy0) / H) ** 2)[..., None]
-    sea *= np.clip(VIGNETTE_BRIGHTNESS - dist * VIGNETTE_INTENSITY, VIGNETTE_MIN, 1)
+    sea *= np.clip(VIGNETTE_BRIGHTNESS - dist * vignette_strength, VIGNETTE_MIN, 1)
     
     # --- Add texture noise ---
     sea += np.random.normal(0, SEA_NOISE_SIGMA, sea.shape)
