@@ -278,23 +278,43 @@
   transform: translateX(-50%);
   z-index: 30;
   display: flex;
-  gap: 18px;
-  align-items: center;
-  padding: 8px 18px;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 18px;
   border: 1px dashed var(--line);
-  background: rgba(2, 5, 10, 0.7);
+  background: rgba(2, 5, 10, 0.78);
+}
+
+.debug-row {
+  display: flex;
+  gap: 16px;
+  align-items: center;
 }
 
 .debug-title {
   font-size: 9px;
   letter-spacing: 0.3em;
   color: rgba(var(--wrong), 0.9);
+  min-width: 48px;
 }
 
 .debug-panel button.quiet {
   font-size: 10px;
   letter-spacing: 0.12em;
   text-transform: none;
+}
+
+.debug-scrubber {
+  width: 320px;
+  height: 2px;
+  accent-color: rgba(200, 230, 240, 0.8);
+  background: var(--line);
+}
+
+.debug-depth {
+  font-size: 11px;
+  color: var(--light-dim);
+  min-width: 72px;
 }
 
 @keyframes fade-in {

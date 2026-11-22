@@ -3,15 +3,17 @@
   position: absolute;
   top: 28px;
   left: 32px;
+  z-index: 5;
   display: flex;
   gap: 18px;
   align-items: baseline;
   font-family: var(--font-display);
   font-style: italic;
   font-weight: 300;
-  font-size: 17px;
-  letter-spacing: 0.04em;
+  font-size: 15px;
+  letter-spacing: 0.08em;
   color: var(--light-faint);
+  opacity: 0.8;
 }
 
 .demo-indicator {
@@ -34,6 +36,7 @@
   top: 14vh;
   bottom: 14vh;
   width: 1px;
+  z-index: 5;
 }
 
 .depth-rail-line {
@@ -58,11 +61,12 @@
   position: absolute;
   left: 32px;
   bottom: 28px;
+  z-index: 5;
   display: flex;
   flex-direction: column;
   gap: 4px;
-  font-size: 11px;
-  letter-spacing: 0.22em;
+  font-size: 10px;
+  letter-spacing: 0.28em;
   text-transform: uppercase;
   color: var(--light-faint);
 }
@@ -70,7 +74,7 @@
 .depth-readout .mono {
   text-transform: none;
   font-size: 15px;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   color: var(--light-dim);
 }
 
@@ -86,6 +90,7 @@
   right: 4vw;
   top: 0;
   bottom: 0;
+  z-index: 5;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -262,6 +267,7 @@ button:disabled {
   position: absolute;
   bottom: 24px;
   right: 32px;
+  z-index: 5;
 }
 
 .corner-group {

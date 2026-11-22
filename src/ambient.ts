@@ -190,13 +190,23 @@ export function sonarProgressAt(nowMs: number): number {
   return (nowMs % AMBIENT_CONFIG.sonarIntervalMs) / AMBIENT_CONFIG.sonarIntervalMs;
 }
 
+/**
+ * Smoothly interpolated light-cone opacity between two zones, so the cone
+ * dims continuously as depth increases rather than stepping per zone.
+ */
+export function lerpLightOpacity(fromIdx: number, toIdx: number, progress: number): number {
+  const a = AMBIENT_CONFIG.lightOpacity[fromIdx] ?? 0.08;
+  const b = AMBIENT_CONFIG.lightOpacity[toIdx] ?? a;
+  return a + (b - a) * Math.min(1, Math.max(0, progress));
+}
+
 // ---------------------------------------------------------------------------
 // DOM layer. Called once per RAF frame from main.ts; no loop of its own.
 // ---------------------------------------------------------------------------
 
 export interface AmbientLayer {
   mount(): void;
-  update(depth: number, state: AppState, nowMs: number): void;
+  update(depth: number, state: AppState, nowMs: number, descentRate?: number): void;
   setMotionEnabled(enabled: boolean): void;
   isMotionEnabled(): boolean;
   destroy(): void;
@@ -215,6 +225,13 @@ export function createAmbientLayer(): AmbientLayer {
   let currentTo = -1;
   let lastState: AppState | null = null;
   let distractionAt = -1;
+  // Camera-relative upward drift: as the bell sinks, snow appears to rise.
+  // We accumulate a scroll offset (in screen-heights) from the descent rate
+  // so particles move up faster the faster we descend. Three parallax
+  // layers move at different fractions for depth.
+  let descentScroll = 0;
+  let lastScrollTime = -1;
+  const PARALLAX = [0.35, 0.7, 1.15]; // far, mid, near layers
   // Only the zones actually reached are fetched (the <img> fetches when
   // its src is set). We also warm the next zone one step ahead so the
   // crossfade has it ready, but never load all five up front.
@@ -228,7 +245,11 @@ export function createAmbientLayer(): AmbientLayer {
     img.src = src;
   }
 
-  const snow = createParticles(120, 7);
+  // Three particle fields, one per parallax layer. Near layer is sparser
+  // and larger; far layer is dense and tiny.
+  const snowFar = createParticles(70, 7);
+  const snowMid = createParticles(55, 19);
+  const snowNear = createParticles(28, 41);
   const bubbles = createParticles(AMBIENT_CONFIG.bubbleCount, 21);
 
   function prefersReducedMotion(): boolean {
@@ -312,16 +333,31 @@ export function createAmbientLayer(): AmbientLayer {
     ctx.save();
     ctx.scale(dpr, dpr);
 
-    // Marine snow.
-    const count = AMBIENT_CONFIG.snowCount[zoneIdx] ?? 70;
-    ctx.fillStyle = 'rgba(200, 215, 225, 0.55)';
-    for (let i = 0; i < count; i++) {
-      const particle = snow[i];
-      if (!particle) continue;
-      const pos = snowPositionAt(particle, nowMs);
-      ctx.beginPath();
-      ctx.arc(pos.x * w, pos.y * h, particle.r, 0, Math.PI * 2);
-      ctx.fill();
+    // Marine snow drifting UPWARD relative to the camera (the bell sinks,
+    // so suspended particles rise past it). Three parallax layers at
+    // different speeds give the frame depth. Each layer combines a slow
+    // constant baseline drift with the descent-driven scroll.
+    const tSec = nowMs / 1000;
+    const layers: Array<{ field: AmbientParticle[]; px: number; r: number; alpha: number }> = [
+      { field: snowFar, px: PARALLAX[0] ?? 0.35, r: 0.7, alpha: 0.28 },
+      { field: snowMid, px: PARALLAX[1] ?? 0.7, r: 1.0, alpha: 0.4 },
+      { field: snowNear, px: PARALLAX[2] ?? 1.15, r: 1.5, alpha: 0.5 },
+    ];
+    // Fade particles out a touch in the deep where the water is near-black.
+    const depthFade = 1 - Math.min(0.45, zoneIdx * 0.11);
+    for (const layer of layers) {
+      ctx.fillStyle = `rgba(200, 215, 225, ${(layer.alpha * depthFade).toFixed(3)})`;
+      const baseDrift = tSec * AMBIENT_CONFIG.snowFallSpeed * layer.px;
+      const scroll = descentScroll * layer.px;
+      for (const particle of layer.field) {
+        // Subtract so particles move up; wrap into [0,1).
+        let y = (particle.y - baseDrift - scroll) % 1;
+        if (y < 0) y += 1;
+        const x = particle.x + Math.sin(tSec * 0.25 + particle.phase) * particle.sway;
+        ctx.beginPath();
+        ctx.arc(x * w, y * h, particle.r * layer.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
     }
 
     // Bubbles rising from the bell area, faster on distraction.
@@ -329,7 +365,7 @@ export function createAmbientLayer(): AmbientLayer {
     const mult = distracted
       ? AMBIENT_CONFIG.bubbleDistractionMultiplier
       : 1;
-    ctx.strokeStyle = 'rgba(170, 200, 215, 0.5)';
+    ctx.strokeStyle = `rgba(170, 200, 215, ${(0.5 * depthFade).toFixed(3)})`;
     ctx.lineWidth = 1;
     for (let i = 0; i < bubbles.length; i++) {
       const particle = bubbles[i];
@@ -346,7 +382,7 @@ export function createAmbientLayer(): AmbientLayer {
     const progress = sonarProgressAt(nowMs);
     const maxR = Math.max(w, h) * 0.55;
     ctx.strokeStyle = `rgba(120, 200, 220, ${
-      (1 - progress) * AMBIENT_CONFIG.sonarMaxAlpha
+      (1 - progress) * AMBIENT_CONFIG.sonarMaxAlpha * depthFade
     })`;
     ctx.lineWidth = 1.5;
     ctx.beginPath();
@@ -362,8 +398,20 @@ export function createAmbientLayer(): AmbientLayer {
     ctx.restore();
   }
 
-  function update(depth: number, state: AppState, nowMs: number): void {
+  function update(depth: number, state: AppState, nowMs: number, descentRate = 0): void {
     if (!root || !bgA || !bgB || !light || !canvas) return;
+
+    // Accumulate the camera-relative upward scroll from the descent rate.
+    // Scaled down so a normal 12 m/min descent is a gentle drift; a debug
+    // scrub or preview (fast) makes particles stream up noticeably.
+    if (lastScrollTime >= 0) {
+      const dt = (nowMs - lastScrollTime) / 1000;
+      if (dt > 0 && dt < 1) {
+        // descentRate is m/s; 0.0016 screen-heights per metre feels right.
+        descentScroll += Math.max(0, descentRate) * dt * 0.0016;
+      }
+    }
+    lastScrollTime = nowMs;
 
     // Zone crossfade (runs even with motion off: the background must
     // still sink as depth changes).
@@ -392,7 +440,7 @@ export function createAmbientLayer(): AmbientLayer {
 
     if (!motionEnabled) {
       root.style.transform = '';
-      light.style.opacity = String(AMBIENT_CONFIG.lightOpacity[fromIndex]);
+      light.style.opacity = String(lerpLightOpacity(fromIndex, toIndex, progress));
       return;
     }
 
@@ -401,7 +449,7 @@ export function createAmbientLayer(): AmbientLayer {
       Math.sin((nowMs / AMBIENT_CONFIG.swayPeriodMs) * Math.PI * 2) *
       AMBIENT_CONFIG.swayDegrees;
     light.style.transform = `rotate(${sway.toFixed(3)}deg)`;
-    light.style.opacity = String(AMBIENT_CONFIG.lightOpacity[fromIndex]);
+    light.style.opacity = String(lerpLightOpacity(fromIndex, toIndex, progress));
     const breath =
       0.5 +
       0.5 * Math.sin((nowMs / AMBIENT_CONFIG.breathPeriodMs) * Math.PI * 2);

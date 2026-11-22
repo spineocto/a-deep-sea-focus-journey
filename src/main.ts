@@ -10,6 +10,16 @@ import { distractionDetector } from './distraction-detector.js';
 import { createAudioController } from './audio.js';
 import { createAmbientLayer, zoneIndexForDepth } from './ambient.js';
 import { Config } from './config.js';
+import {
+  getDepthOverride,
+  setDepthOverride,
+  startPreview,
+  applyUrlOverrides,
+  initDebugControls,
+  updateZoneTitle,
+  buildDepthTicks,
+  updateDepthTicks,
+} from './preview.js';
 import { CREATURE_ART } from './creature-art.js';
 import eyeUrl from '../art/out/eye.webp';
 import bellNormalUrl from '../art/out/bell-normal.webp';
@@ -134,6 +144,9 @@ export function updateButtonVisibility(currentState: AppState, endingSeen: boole
 const OXYGEN_DRAIN = 0.65; // oxygen never drops below 35% during a round
 let lastOxygen = 1;
 let codexKey = '';
+let firstPaint = true;
+let prevDepthForRate = 0;
+let prevRateTime = 0;
 
 const CAPTIONS: Record<AppState, string> = {
   [AppState.IDLE]: 'READY',
@@ -207,7 +220,11 @@ function updateUI(): void {
   
   const now = Date.now();
   const scene = document.getElementById('app');
-  const currentDepth = depthCalculator.getCurrentTotalDepth(depthState);
+  const realDepth = depthCalculator.getCurrentTotalDepth(depthState);
+  // In debug/preview a depth override drives the whole scene without
+  // touching game state; otherwise the scene follows the real depth.
+  const override = getDepthOverride();
+  const currentDepth = override ?? realDepth;
   const zoneIdx = zoneIndexForDepth(currentDepth);
   const breakInfo = appController.getBreakProgress();
 
@@ -259,6 +276,15 @@ function updateUI(): void {
   const pct = Math.min(100, (currentDepth / Config.targetDepth) * 100);
   scene?.style.setProperty('--depth-pct', pct.toFixed(3));
 
+  // Continuous depth grading (0..1): the scene darkens, the light cone
+  // narrows and the vignette tightens smoothly instead of in zone steps.
+  const depthNorm = Math.min(1, currentDepth / Config.targetDepth);
+  scene?.style.setProperty('--depth', depthNorm.toFixed(4));
+  // Cable pays out as the bell sinks (scrolls the cable texture upward).
+  document.documentElement.style.setProperty('--descend-px', `${(currentDepth % 1000).toFixed(1)}`);
+  // Depth tick marks scroll upward behind the scene.
+  updateDepthTicks(currentDepth);
+
   // 5. Scene attributes: CSS reads these for mood, zone and state.
   if (scene) {
     scene.setAttribute('data-state', currentState);
@@ -271,6 +297,10 @@ function updateUI(): void {
           : 'normal';
     scene.setAttribute('data-mood', mood);
   }
+
+  // Quiet zone title on zone entry.
+  updateZoneTitle(zoneIdx, firstPaint);
+  firstPaint = false;
 
   // Ambience plays only while actively focusing.
   if (currentState === AppState.FOCUSING || currentState === AppState.DISTRACTED) {
@@ -291,13 +321,17 @@ function updateUI(): void {
       ? `${timeText} - Deep Sea Focus Journey`
       : 'Deep Sea Focus Journey';
 
-  // 9. 更新動效層：用本輪淨深度（不是已結算的總深度），
-  // 這樣專注進行中背景就會慢慢下沉、慢慢變暗。
-  ambient.update(
-    depthCalculator.getCurrentTotalDepth(depthState),
-    currentState,
-    Date.now(),
-  );
+  // 9. 更新動效層：用當前顯示深度（含 debug/preview override），
+  // 這樣專注進行中或預覽時背景就會慢慢下沉、慢慢變暗。
+  // Descent rate (m/s) drives the upward drift speed of marine snow.
+  let descentRate = 0;
+  if (prevRateTime > 0) {
+    const dt = (now - prevRateTime) / 1000;
+    if (dt > 0) descentRate = (currentDepth - prevDepthForRate) / dt;
+  }
+  prevDepthForRate = currentDepth;
+  prevRateTime = now;
+  ambient.update(currentDepth, currentState, now, descentRate);
 
   // 10. 更新按鈕可見性
   updateButtonVisibility(currentState, state.endingSeen);
@@ -465,15 +499,29 @@ function initApp(): void {
   }
 
   // 00b. Debug panel: hidden unless ?debug=1 or Shift+D. Codex drawer toggle.
+  const urlParams = new URLSearchParams(window.location.search);
   const debugPanel = document.getElementById('debug-panel');
-  if (new URLSearchParams(window.location.search).get('debug') === '1') {
+  const debugOn = urlParams.get('debug') === '1';
+  if (debugOn) {
     debugPanel?.classList.remove('hidden');
+  }
+  initDebugControls();
+  buildDepthTicks();
+  // URL entry points for jumping straight to a depth/zone/ending.
+  applyUrlOverrides(urlParams);
+  // ?preview=1 auto-animates the whole descent in ~60 s.
+  if (urlParams.get('preview') === '1') {
+    debugPanel?.classList.remove('hidden');
+    startPreview();
   }
   window.addEventListener('keydown', (e) => {
     if (e.shiftKey && e.key.toLowerCase() === 'd' && !e.metaKey && !e.ctrlKey) {
       debugPanel?.classList.toggle('hidden');
     }
-    if (e.key === 'Escape') setCodexOpen(false);
+    if (e.key === 'Escape') {
+      setCodexOpen(false);
+      setDepthOverride(null);
+    }
   });
   const codexToggle = document.getElementById('codex-toggle');
   const codexPanel = document.getElementById('codex-panel');

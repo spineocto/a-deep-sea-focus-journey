@@ -10,6 +10,9 @@
   </head>
   <body>
     <main id="app" class="scene" data-mood="normal" data-state="IDLE" data-zone="0">
+      <!-- Depth tick marks scroll upward behind the scene as the bell sinks. -->
+      <div class="depth-ticks" id="depth-ticks" aria-hidden="true"></div>
+
       <!-- A resident eye, far away and faint. It only opens wide when you look away. -->
       <img class="eye eye-far" id="eye-far" alt="" aria-hidden="true" />
       <img class="eye eye-giant" id="eye-giant" alt="" aria-hidden="true" />
@@ -91,11 +94,37 @@
 
       <!-- Debug tools: hidden unless ?debug=1 or Shift+D -->
       <div id="debug-panel" class="debug-panel hidden" aria-label="Debug controls">
-        <span class="debug-title">DEBUG</span>
-        <button id="test-distraction-button" class="quiet">Test distraction</button>
-        <button id="demo-mode-toggle" class="quiet">Toggle demo mode</button>
-        <button id="motion-toggle" class="quiet">Motion: On</button>
-        <button id="clear-data-button" class="quiet">Clear all data</button>
+        <div class="debug-row">
+          <span class="debug-title">DEBUG</span>
+          <button id="test-distraction-button" class="quiet">Test distraction</button>
+          <button id="demo-mode-toggle" class="quiet">Toggle demo mode</button>
+          <button id="motion-toggle" class="quiet">Motion: On</button>
+          <button id="clear-data-button" class="quiet">Clear all data</button>
+        </div>
+        <div class="debug-row">
+          <span class="debug-title">DEPTH</span>
+          <input id="depth-scrubber" class="debug-scrubber" type="range"
+                 min="0" max="10900" step="10" value="0"
+                 aria-label="Preview depth in metres" />
+          <span class="debug-depth mono" id="debug-depth-value">0 m</span>
+          <button id="depth-release" class="quiet">Live</button>
+        </div>
+        <div class="debug-row">
+          <span class="debug-title">JUMP</span>
+          <button class="quiet" data-zone-jump="1">Sunlit</button>
+          <button class="quiet" data-zone-jump="2">Twilight</button>
+          <button class="quiet" data-zone-jump="3">Midnight</button>
+          <button class="quiet" data-zone-jump="4">Abyssal</button>
+          <button class="quiet" data-zone-jump="5">Hadal</button>
+          <button id="jump-ending" class="quiet">Ending</button>
+          <button id="preview-run" class="quiet">Preview 60s</button>
+        </div>
+      </div>
+
+      <!-- Zone title: fades in briefly when a new zone is entered. -->
+      <div id="zone-title" class="zone-title" aria-hidden="true">
+        <span class="zone-title-name" id="zone-title-name"></span>
+        <span class="zone-title-depth mono" id="zone-title-depth"></span>
       </div>
 
       <!-- Research-file card -->
