@@ -40,6 +40,7 @@
 }
 
 .depth-rail-line {
+  filter: url(#wobble-fine);
   position: absolute;
   inset: 0;
   background: linear-gradient(180deg, transparent, var(--line) 12%, var(--line) 88%, transparent);
@@ -110,6 +111,7 @@
 }
 
 .ring {
+  filter: url(#wobble);
   position: absolute;
   inset: 0;
   width: 100%;
@@ -150,14 +152,14 @@
 .timer {
   font-family: var(--font-display);
   font-weight: 300;
-  font-variant-numeric: lining-nums tabular-nums;
+  font-variant-numeric: tabular-nums;
   font-size: clamp(54px, 10.5vh, 112px);
   line-height: 1;
   letter-spacing: 0.02em;
   color: var(--light);
   text-shadow:
-    0 0 calc(16px + var(--ambient-breath, 0.5) * 22px) rgba(190, 225, 240, 0.4),
-    0 0 calc(50px + var(--ambient-breath, 0.5) * 30px) rgba(150, 200, 225, 0.22);
+    0 0 calc(16px + var(--ambient-breath, 0.5) * 22px) rgba(214, 214, 190, 0.34),
+    0 0 calc(50px + var(--ambient-breath, 0.5) * 30px) rgba(170, 190, 180, 0.2);
 }
 
 .caption {

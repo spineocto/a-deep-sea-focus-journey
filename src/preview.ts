@@ -18,12 +18,14 @@ const PREVIEW_DURATION_MS = 60_000;
 
 /** Display names + entry depths for the quiet zone title. */
 export const ZONE_TITLES: ReadonlyArray<{ name: string; depth: number }> = [
-  { name: 'EPIPELAGIC', depth: 0 },
-  { name: 'MESOPELAGIC', depth: 200 },
-  { name: 'BATHYPELAGIC', depth: 1000 },
-  { name: 'ABYSSOPELAGIC', depth: 4000 },
-  { name: 'HADAL', depth: 6000 },
+  { name: 'Epipelagic', depth: 0 },
+  { name: 'Mesopelagic', depth: 200 },
+  { name: 'Bathypelagic', depth: 1000 },
+  { name: 'Abyssopelagic', depth: 4000 },
+  { name: 'Hadal', depth: 6000 },
 ];
+
+const CHAPTERS = ['I', 'II', 'III', 'IV', 'V'];
 
 let depthOverride: number | null = null;
 let previewStart: number | null = null;
@@ -175,10 +177,12 @@ export function updateZoneTitle(zoneIdx: number, firstPaint: boolean): void {
   const el = document.getElementById('zone-title');
   const nameEl = document.getElementById('zone-title-name');
   const depthEl = document.getElementById('zone-title-depth');
+  const chapterEl = document.getElementById('zone-title-chapter');
   const title = ZONE_TITLES[zoneIdx];
   if (!el || !nameEl || !depthEl || !title) return;
 
   nameEl.textContent = title.name;
+  if (chapterEl) chapterEl.textContent = `Chapter ${CHAPTERS[zoneIdx] ?? ''}`;
   depthEl.textContent = title.depth === 0 ? 'SURFACE' : `${title.depth.toLocaleString('en-US')} m`;
 
   el.classList.remove('show');

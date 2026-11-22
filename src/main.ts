@@ -1,4 +1,5 @@
 // focus-core 主入口
+import { applyInk } from './ink.js';
 import { AppState } from './state-machine.js';
 import { createAppController } from './app-controller.js';
 import { timer } from './timer.js';
@@ -500,6 +501,9 @@ function rafLoop(): void {
  * 初始化應用程式
  */
 function initApp(): void {
+  // 00. Hand-drawn line work for the companion (static, once).
+  applyInk(document);
+
   // 00. Bell sprites
   const sprites: Array<[string, string]> = [
     ['bell-normal', bellNormalUrl],

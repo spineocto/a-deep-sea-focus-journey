@@ -10,6 +10,20 @@
   </head>
   <body>
     <main id="app" class="scene" data-mood="normal" data-state="IDLE" data-zone="0">
+      <!-- Hand-drawn wobble for small static line work (rings, rails, chapter titles). -->
+      <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+        <filter id="wobble" x="-5%" y="-5%" width="110%" height="110%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="4" result="n" />
+          <feDisplacementMap in="SourceGraphic" in2="n" scale="3.2" />
+        </filter>
+        <filter id="wobble-fine" x="-5%" y="-10%" width="110%" height="120%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.06" numOctaves="2" seed="9" result="n" />
+          <feDisplacementMap in="SourceGraphic" in2="n" scale="1.8" />
+        </filter>
+      </svg>
+      <div class="paper-wash" aria-hidden="true"></div>
+      <div class="ink-bleed" aria-hidden="true"></div>
+
       <!-- Depth tick marks scroll upward behind the scene as the bell sinks. -->
       <div class="depth-ticks" id="depth-ticks" aria-hidden="true"></div>
 
@@ -45,10 +59,10 @@
                 <rect x="260" y="330" width="380" height="380" fill="url(#co-bg)" />
                 <g class="co-lean">
                   <g class="co-body">
-                    <path class="co-skirt" d="M330 575 L378 536 L520 536 L562 574 L520 600 L450 612 L380 600 Z" fill="#d4796b" />
-                    <g class="co-ear co-ear-l"><path d="M372 478 L336 452 L312 462 L322 488 L340 500 L372 506 Z" fill="#d9786a" /></g>
-                    <g class="co-ear co-ear-r"><path d="M528 478 L564 452 L588 462 L578 488 L560 500 L528 506 Z" fill="#d9786a" /></g>
-                    <circle class="co-head" cx="450" cy="490" r="96" fill="url(#co-head)" />
+                    <path class="co-skirt" data-ink="poly:330,575 378,540 450,534 522,540 562,574 520,602 450,614 380,602" fill="#c96f62" />
+                    <g class="co-ear co-ear-l"><path data-ink="poly:374,478 352,458 332,450 314,462 318,486 336,500 374,508" fill="#cf7466" /></g>
+                    <g class="co-ear co-ear-r"><path data-ink="poly:526,478 548,458 568,450 586,462 582,486 564,500 526,508" fill="#cf7466" /></g>
+                    <path class="co-head" data-ink="circle:450,490,96" fill="url(#co-head)" />
                     <ellipse cx="432" cy="440" rx="34" ry="18" fill="#f8c0b0" opacity="0.7" />
                     <g class="co-face">
                       <g class="co-eyes">
@@ -164,8 +178,10 @@
 
       <!-- Zone title: fades in briefly when a new zone is entered. -->
       <div id="zone-title" class="zone-title" aria-hidden="true">
+        <span class="zone-title-chapter" id="zone-title-chapter"></span>
         <span class="zone-title-name" id="zone-title-name"></span>
-        <span class="zone-title-depth mono" id="zone-title-depth"></span>
+        <span class="zone-title-rule" aria-hidden="true"></span>
+        <span class="zone-title-depth" id="zone-title-depth"></span>
       </div>
 
       <!-- Research-file card -->
