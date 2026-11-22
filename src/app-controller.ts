@@ -296,7 +296,13 @@ export class AppControllerImpl implements AppController {
     const data = storage.load(demoMode.isEnabled);
     
     if (!data) {
-      // 沒有存檔，使用預設值
+      // 沒有存檔，重設為初始值
+      this.depthState = createInitialDepthState();
+      this.codexState = { unlockedCards: [] };
+      this.completedRounds = 0;
+      this.endingSeen = false;
+      this.stateMachine.currentState = AppState.IDLE;
+      this.timerState = null;
       return;
     }
     
@@ -461,9 +467,13 @@ export class AppControllerImpl implements AppController {
     // 9. 初始化休息計時器（如果進入 SHORT_BREAK 或 LONG_BREAK）
     if (!shouldShowEnding) {
       this.breakStartAt = Date.now();
+      // Demo 模式下休息時間也要加速
+      const breakMultiplier = this.timerState?.isDemoMode 
+        ? Config.demoModeMultiplier 
+        : 1;
       this.breakDurationMs = isLongBreak 
-        ? Config.longBreakDuration * 60 * 1000 
-        : Config.shortBreakDuration * 60 * 1000;
+        ? (Config.longBreakDuration * 60 * 1000) / breakMultiplier
+        : (Config.shortBreakDuration * 60 * 1000) / breakMultiplier;
     }
     
     // 10. 清除 TimerState

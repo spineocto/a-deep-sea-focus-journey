@@ -10,6 +10,7 @@ import { createAppController, type AppController } from '../app-controller.js';
 import { AppState } from '../state-machine.js';
 import { storage } from '../storage.js';
 import { demoMode } from '../demo-mode.js';
+import { Config } from '../config.js';
 
 describe('AppController', () => {
   let controller: AppController;
@@ -552,3 +553,114 @@ describe('AppController', () => {
 });
 
 });
+
+  // Bug fix tests for Demo Mode
+  describe('Demo Mode Bug Fixes', () => {
+    it('should accelerate break duration in demo mode', () => {
+      // Enable demo mode
+      demoMode.toggle();
+      const controller = createAppController();
+      controller.init();
+
+      // Start a 25-minute focus in demo mode
+      controller.handleStartFocus(25);
+
+      // Simulate 25 minutes (in demo mode, this is 25 seconds real time)
+      const state = controller.getState();
+      if (!state.timerState) {
+        throw new Error('TimerState should exist');
+      }
+
+      // Complete the round by advancing time
+      vi.setSystemTime(state.timerState.roundStartAt + (25 * 60 * 1000) / Config.demoModeMultiplier + 100);
+      controller.update();
+
+      // Should be in SHORT_BREAK
+      expect(controller.getState().stateMachine.getState()).toBe(AppState.SHORT_BREAK);
+
+      // Check that break duration is accelerated (5 minutes / 60 = 5 seconds)
+      const expectedBreakDuration = (Config.shortBreakDuration * 60 * 1000) / Config.demoModeMultiplier;
+      expect((controller as any).breakDurationMs).toBe(expectedBreakDuration);
+
+      demoMode.toggle(); // Reset
+    });
+
+    it('should accelerate long break duration in demo mode', () => {
+      // Enable demo mode and clear storage
+      localStorage.clear();
+      demoMode.toggle();
+      const controller = createAppController();
+      controller.init();
+
+      // Complete 3 rounds
+      for (let i = 0; i < 3; i++) {
+        controller.handleStartFocus(25);
+        const state = controller.getState();
+        if (!state.timerState) throw new Error('TimerState should exist');
+        vi.setSystemTime(state.timerState.roundStartAt + (25 * 60 * 1000) / Config.demoModeMultiplier + 100);
+        controller.update();
+        controller.handleSkipBreak();
+      }
+
+      // Start 4th round
+      controller.handleStartFocus(25);
+      const state = controller.getState();
+      if (!state.timerState) throw new Error('TimerState should exist');
+      vi.setSystemTime(state.timerState.roundStartAt + (25 * 60 * 1000) / Config.demoModeMultiplier + 100);
+      controller.update();
+
+      // Should be in LONG_BREAK
+      expect(controller.getState().stateMachine.getState()).toBe(AppState.LONG_BREAK);
+
+      // Check that break duration is accelerated (15 minutes / 60 = 15 seconds)
+      const expectedBreakDuration = (Config.longBreakDuration * 60 * 1000) / Config.demoModeMultiplier;
+      expect((controller as any).breakDurationMs).toBe(expectedBreakDuration);
+
+      demoMode.toggle(); // Reset
+    });
+
+    it('should reset to initial values when switching to demo mode with no save', () => {
+      // Start in normal mode with some progress
+      const controller = createAppController();
+      controller.init();
+      
+      controller.handleStartFocus(25);
+      const state1 = controller.getState();
+      if (!state1.timerState) throw new Error('TimerState should exist');
+      
+      // Advance time and accumulate depth
+      vi.setSystemTime(state1.timerState.roundStartAt + 10 * 60 * 1000);
+      controller.update();
+      
+      // Complete round
+      vi.setSystemTime(state1.timerState.roundStartAt + 25 * 60 * 1000 + 100);
+      controller.update();
+      
+      // Should have depth and completed rounds
+      const stateBeforeToggle = controller.getState();
+      expect(stateBeforeToggle.depthState.totalDepth).toBeGreaterThan(0);
+      expect(stateBeforeToggle.completedRounds).toBe(1);
+      
+      // Clear all storage before toggling
+      localStorage.clear();
+      
+      // Toggle to demo mode (no demo save exists, should reset)
+      demoMode.toggle();
+      const controller2 = createAppController();
+      controller2.init(); // This should restore, but find no save and reset
+      
+      // Should be reset to initial values
+      const stateAfterToggle = controller2.getState();
+      expect(stateAfterToggle.depthState.totalDepth).toBe(0);
+      expect(stateAfterToggle.depthState.roundStartDepth).toBe(0);
+      expect(stateAfterToggle.depthState.roundDescentDepth).toBe(0);
+      expect(stateAfterToggle.depthState.roundRisePenalty).toBe(0);
+      expect(stateAfterToggle.completedRounds).toBe(0);
+      expect(stateAfterToggle.endingSeen).toBe(false);
+      expect(stateAfterToggle.codexState.unlockedCards.length).toBe(0);
+      expect(stateAfterToggle.stateMachine.getState()).toBe(AppState.IDLE);
+      expect(stateAfterToggle.timerState).toBeNull();
+      
+      demoMode.toggle(); // Reset
+    });
+  });
