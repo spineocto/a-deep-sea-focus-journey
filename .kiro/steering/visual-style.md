@@ -1,5 +1,17 @@
 # Visual style — hard rules (not suggestions)
 
+## CURRENT DIRECTION (2026-11-21, supersedes "Expressionism" below where they conflict)
+**Hand-drawn illustration texture, beautiful but uncanny (手繪插畫質感，美中帶詭).** A dark picture book / gouache-and-ink storybook of the deep sea: gentle on the surface, something wrong underneath. Costume Contest goal: a polished, unforgettable, haunting UI where spooky elements *serve function*.
+- **Texture:** paper grain + soft gouache/watercolour washes replace digital film grain. Edges slightly uneven and soft; SVG turbulence/displacement only on small static shapes, otherwise pre-rendered textures (small webp).
+- **Line work:** bathysphere, octopus, creatures, eye, UI rings/rails drawn with wobbly ink strokes of varying width. Never perfect vector geometry.
+- **Palette (muted, earthy-ink):** deep indigo, ink black, faded teal, bone/cream paper highlights, ONE warm amber lamp (the only warm colour besides the companion).
+- **Zones:** painterly layered illustrations (silhouetted rock/kelp/abyss shapes, light shafts as soft brush washes), darker and stranger with depth; zone 5 hides huge, barely visible shapes in the dark. Webp, small.
+- **Type:** one storybook display serif (self-hosted, OFL; IM Fell English) for titles, zone names (book-chapter headings) and the timer; a clean UI face for small text; a handwriting face (OFL) only for naturalist's notes.
+- **Uncanny, functional:** distraction = ink bleeds in from the page edges; the far eye is drawn in the same ink style; codex cards are specimen drawings pinned in a naturalist's journal with handwritten notes; unlocking "inks in" the drawing.
+- Motion stays slow; `prefers-reduced-motion` disables ink/bleed/flap animation; keep it light on the GPU.
+
+## LEGACY direction (kept for composition, depth and "Never" rules)
+
 Final direction: **Expressionism + minimal negative space.**
 
 ## Composition
@@ -26,7 +38,7 @@ Final direction: **Expressionism + minimal negative space.**
 0–200 m sunlit teal, light shafts, small fish, safe · 200–1,000 m indigo, particles · 1,000–4,000 m blue-black, huge shadows · 4,000–6,000 m ink black, cold violet, faint bioluminescence · 6,000 m+ black, dark red accents, subtle "wrong" UI glitches (rare, small).
 
 ## Always
-Depth layers (far sea → particles → bell → foreground vignette/grain), volumetric soft light cone, vignette + film grain + fog that thicken with depth, slow motion everywhere (fast only during anomalies).
+Depth layers (far sea → particles → bell → foreground vignette/grain), volumetric soft light cone, vignette + paper grain + fog that thicken with depth, slow motion everywhere (fast only during anomalies).
 
 ## Never
 Flat SVG illustration as main art (SVG only for icons, sonar, effects) · purple-blue gradient buttons · glassmorphism templates · emoji for creatures/warnings/companion · bright saturated colours in horror scenes · collage, pixel art, woodcut-carved UI.
