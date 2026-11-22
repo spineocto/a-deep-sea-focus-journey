@@ -17,6 +17,7 @@ export interface CreatureCard {
   readonly commonNameEn: string;
   readonly commonNameZh: string;
   readonly depthRange: string;
+  /** Short field note shown on the card (handwritten voice). Data sources live in the README. */
   readonly facts: string;
   readonly isEndingCard: boolean; // Supergiant amphipod 特殊標記
 }
@@ -57,7 +58,7 @@ export const CREATURE_CARDS: readonly CreatureCard[] = [
     commonNameEn: 'Moon jellyfish',
     commonNameZh: '海月水母',
     depthRange: '0-1,250 m',
-    facts: 'Mostly near the surface in coastal waters; recorded 0–1,250 m. Sources: SeaLifeBase; WoRMS',
+    facts: 'Drifts where the light is still kind. Four pale rings sit in its crown, and I could not tell if they were watching me.',
     isEndingCard: false
   },
   {
@@ -67,7 +68,7 @@ export const CREATURE_CARDS: readonly CreatureCard[] = [
     commonNameEn: 'Barreleye',
     commonNameZh: '桶眼魚',
     depthRange: '600-800 m',
-    facts: '600–800 m; transparent head, green tubular eyes. Sources: MBARI; Monterey Bay Aquarium',
+    facts: 'Its head is a dome of glass, and the green eyes beneath it turn upward, searching the dark for whatever sinks. I hope it is not me.',
     isEndingCard: false
   },
   {
@@ -77,7 +78,7 @@ export const CREATURE_CARDS: readonly CreatureCard[] = [
     commonNameEn: 'Humpback anglerfish',
     commonNameZh: '黑魔鬼鮟鱇',
     depthRange: '100-3,600 m',
-    facts: 'Usually 100–1,500 m (most often 500–1,500 m); recorded to ~3,600 m. Sources: FishBase; Pietsch via Zenodo',
+    facts: 'One small lantern, held out above a very large mouth. The lantern is lovely. That is the whole trick.',
     isEndingCard: false
   },
   {
@@ -87,7 +88,7 @@ export const CREATURE_CARDS: readonly CreatureCard[] = [
     commonNameEn: 'Dumbo octopus',
     commonNameZh: '小飛象章魚',
     depthRange: '1,000-7,000 m',
-    facts: '1,000–7,000 m; deepest octopus ever filmed at 6,957 m (Java Trench, 2020). Sources: NHM London; Marine Biology 2020; Guinness',
+    facts: 'It flaps its ear-fins and passes slowly, as if it has been here since before the water. It was not afraid of my lamp.',
     isEndingCard: false
   },
   {
@@ -97,7 +98,7 @@ export const CREATURE_CARDS: readonly CreatureCard[] = [
     commonNameEn: 'Mariana snailfish',
     commonNameZh: '馬里亞納獅子魚',
     depthRange: '6,198-8,178 m',
-    facts: '6,198–8,178 m, usually 7,000–8,000 m; no fish likely below ~8,400 m. Sources: FishBase; NOAA Ocean Exploration',
+    facts: 'Soft as wet paper, and living under a weight that folds steel. I wrote its name very gently.',
     isEndingCard: false
   },
   {
@@ -107,7 +108,7 @@ export const CREATURE_CARDS: readonly CreatureCard[] = [
     commonNameEn: 'Supergiant amphipod',
     commonNameZh: '巨型端足類',
     depthRange: '6,800-11,000 m',
-    facts: '~6,800–11,000 m; dominant animal of Challenger Deep (collected at 10,929 m). Sources: Cell 2025; Mitochondrial DNA B 2016',
+    facts: 'Where no fish can follow, they wait and eat whatever falls. Something has fallen here before us.',
     isEndingCard: true
   }
 ] as const;

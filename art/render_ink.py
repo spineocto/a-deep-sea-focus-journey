@@ -173,8 +173,7 @@ def sprites():
             shutil.copy(p, BASE / p.name)
     for i, m in enumerate(("normal", "alert", "sleeping")):
         inkify(f"bell-{m}.webp", wobble=1.6, line=2, bone_line=True, seed=10 + i, desat=0.15)
-    for i, p in enumerate(sorted(BASE.glob("creature-*.webp"))):
-        inkify(p.name, wobble=2.2, line=2, seed=30 + i)
+    # creature-*.webp are engravings from art/render_engravings.py: leave them as drawn.
     inkify("eye.webp", wobble=3.0, line=2, seed=70, desat=0.35)
 
 
