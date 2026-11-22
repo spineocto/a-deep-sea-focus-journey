@@ -340,10 +340,25 @@ function updateUI(): void {
 /**
  * 顯示卡片揭露模態框
  */
+let glanceTimer: number | null = null;
+/** Slow turn-and-glance of the companion; CSS does the motion via .glance. */
+function glanceCompanion(): void {
+  const scene = document.getElementById('app');
+  if (!scene) return;
+  scene.classList.remove('glance');
+  void scene.offsetWidth;
+  scene.classList.add('glance');
+  if (glanceTimer !== null) clearTimeout(glanceTimer);
+  glanceTimer = window.setTimeout(() => scene.classList.remove('glance'), 6500);
+}
+
 function showCardReveal(cardId: string, isDuplicate: boolean): void {
   const card = CREATURE_CARDS.find(c => c.id === cardId);
   if (!card) return;
-  
+
+  // The companion turns to look when a new creature is logged.
+  glanceCompanion();
+
   const modal = document.getElementById('card-reveal');
   const cardName = document.getElementById('card-name');
   const cardScientificName = document.getElementById('card-scientific-name');

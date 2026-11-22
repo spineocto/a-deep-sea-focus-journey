@@ -395,3 +395,112 @@ body.ambient-motion-off .depth-ticks { display: none; }
   .zone-title.show { transform: translateX(-50%); }
   .ambient { transition: none; }
 }
+
+/* ---- Companion (Dumbo octopus in the porthole) -------------------------
+   Always alive: slow breathing, bob and ear-fin flaps.
+   FOCUSING: leans toward the window, lamp brighter.
+   DISTRACTED (mood alert): startle jolt, wide eyes, lamp flicker.
+   Break (mood sleeping): eyes closed, slower bob, dimmer lamp.
+   .glance: slow turn when a codex creature is logged. */
+.companion {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.companion * {
+  transform-box: fill-box;
+}
+
+.co-lean {
+  transform-origin: 50% 60%;
+  transition: transform 1.6s var(--ease-slow);
+}
+.co-body {
+  transform-origin: 450px 560px;
+  transform-box: view-box;
+  animation: co-breathe 5.2s ease-in-out infinite, co-bob 7s ease-in-out infinite;
+}
+.co-ear { animation: co-flap 2.6s ease-in-out infinite; }
+.co-ear-l { transform-origin: 100% 60%; }
+.co-ear-r { transform-origin: 0% 60%; animation-name: co-flap-r; }
+.co-eye { transform-origin: 50% 50%; animation: co-blink 6.5s infinite; transition: transform 0.25s ease-out; }
+.co-eyes { transition: transform 1.2s var(--ease-slow); }
+.co-lids { opacity: 0; transition: opacity 0.9s ease; }
+.co-eyes { transition: opacity 0.9s ease, transform 1.2s var(--ease-slow); }
+.co-lamp-wash { fill: rgb(var(--warm)); opacity: 0.04; transition: opacity 1.4s ease; mix-blend-mode: screen; }
+
+.lamp-glow {
+  position: absolute;
+  left: 81.2%;
+  top: 80.6%;
+  width: 34%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(255, 244, 200, 0.75) 0%, rgba(var(--warm), 0.28) 30%, transparent 65%);
+  mix-blend-mode: screen;
+  opacity: 0.45;
+  transition: opacity 1.2s ease;
+  animation: lamp-pulse 4.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Focusing: lean toward the window (to the right), lamp warmer and brighter. */
+.scene[data-state='FOCUSING'] .co-lean { transform: translate(11px, 3px) rotate(3.5deg); }
+.scene[data-state='FOCUSING'] .co-eyes { transform: translateX(4px); }
+.scene[data-state='FOCUSING'] .lamp-glow { opacity: 0.9; }
+.scene[data-state='FOCUSING'] .co-lamp-wash { opacity: 0.12; }
+.scene[data-state='FOCUSING'] .co-ear { animation-duration: 1.9s; }
+
+/* Distracted: jolt, wide eyes, flickering lamp. */
+.scene[data-mood='alert'] .co-lean { animation: co-startle 0.7s ease-out 1; transform: translate(-6px, -6px) scale(1.04); transition-duration: 0.12s; }
+.scene[data-mood='alert'] .co-eye { transform: scale(1.3); animation: none; }
+.scene[data-mood='alert'] .co-ear { animation-duration: 0.35s; }
+.scene[data-mood='alert'] .lamp-glow { animation: lamp-flicker 0.5s steps(1) infinite; opacity: 0.9; }
+.scene[data-mood='alert'] .co-lamp-wash { opacity: 0.18; }
+
+/* Break: eyes closed, slower bob, dim lamp. */
+.scene[data-mood='sleeping'] .co-eyes { opacity: 0; }
+.scene[data-mood='sleeping'] .co-lids { opacity: 1; }
+.scene[data-mood='sleeping'] .co-lean { transform: translateY(8px) rotate(-2deg); }
+.scene[data-mood='sleeping'] .co-body { animation-duration: 9s, 12s; }
+.scene[data-mood='sleeping'] .co-ear { animation-duration: 6s; }
+.scene[data-mood='sleeping'] .lamp-glow { opacity: 0.18; animation-duration: 9s; }
+.scene[data-mood='sleeping'] .co-lamp-wash { opacity: 0; }
+
+/* Codex unlock: slow turn and glance toward the left, then back. */
+.scene.glance .co-lean { animation: co-glance 6s ease-in-out 1; }
+.scene.glance .co-eyes { transform: translateX(-9px); }
+
+@keyframes co-breathe { 0%, 100% { scale: 1; } 50% { scale: 1.035; } }
+@keyframes co-bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -7px; } }
+@keyframes co-flap { 0%, 100% { rotate: 0deg; } 50% { rotate: -14deg; } }
+@keyframes co-flap-r { 0%, 100% { rotate: 0deg; } 50% { rotate: 14deg; } }
+@keyframes co-blink { 0%, 93%, 100% { transform: scaleY(1); } 96% { transform: scaleY(0.08); } }
+@keyframes co-startle {
+  0% { transform: translate(0, 0); }
+  15% { transform: translate(-14px, -12px) scale(1.07); }
+  30% { transform: translate(7px, 3px); }
+  50% { transform: translate(-8px, -7px) scale(1.05); }
+  100% { transform: translate(-6px, -6px) scale(1.04); }
+}
+@keyframes co-glance {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  25%, 70% { transform: translate(-14px, -2px) rotate(-7deg); }
+}
+@keyframes lamp-pulse { 0%, 100% { scale: 1; } 50% { scale: 1.12; } }
+@keyframes lamp-flicker { 0% { opacity: 0.95; } 25% { opacity: 0.2; } 50% { opacity: 0.8; } 75% { opacity: 0.1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .co-body, .co-ear, .co-eye, .lamp-glow { animation: none !important; }
+  .scene[data-mood='alert'] .co-lean, .scene.glance .co-lean { animation: none; }
+  .co-lean, .co-eyes, .co-lids { transition: none; }
+}
+body.ambient-motion-off .co-body,
+body.ambient-motion-off .co-ear,
+body.ambient-motion-off .co-eye,
+body.ambient-motion-off .lamp-glow { animation: none; }
