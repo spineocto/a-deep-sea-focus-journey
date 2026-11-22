@@ -26,11 +26,11 @@
 import { Config, type Zone } from './config.js';
 import { AppState } from './state-machine.js';
 
-import sunlitUrl from '../art/out/zone-1-sunlit.png';
-import twilightUrl from '../art/out/zone-2-twilight.png';
-import midnightUrl from '../art/out/zone-3-midnight.png';
-import abyssalUrl from '../art/out/zone-4-abyssal.png';
-import hadalUrl from '../art/out/zone-5-hadal.png';
+import sunlitUrl from '../art/out/zone-1-sunlit.webp';
+import twilightUrl from '../art/out/zone-2-twilight.webp';
+import midnightUrl from '../art/out/zone-3-midnight.webp';
+import abyssalUrl from '../art/out/zone-4-abyssal.webp';
+import hadalUrl from '../art/out/zone-5-hadal.webp';
 
 // ---------------------------------------------------------------------------
 // All tunable values -- change only here.
@@ -215,6 +215,18 @@ export function createAmbientLayer(): AmbientLayer {
   let currentTo = -1;
   let lastState: AppState | null = null;
   let distractionAt = -1;
+  // Only the zones actually reached are fetched (the <img> fetches when
+  // its src is set). We also warm the next zone one step ahead so the
+  // crossfade has it ready, but never load all five up front.
+  const preloaded = new Set<number>();
+
+  function preloadZone(index: number): void {
+    const src = ZONE_IMAGES[index];
+    if (!src || preloaded.has(index)) return;
+    preloaded.add(index);
+    const img = new Image();
+    img.src = src;
+  }
 
   const snow = createParticles(120, 7);
   const bubbles = createParticles(AMBIENT_CONFIG.bubbleCount, 21);
@@ -360,6 +372,9 @@ export function createAmbientLayer(): AmbientLayer {
       const src = ZONE_IMAGES[fromIndex];
       if (src) bgA.src = src;
       currentFrom = fromIndex;
+      preloaded.add(fromIndex);
+      // Warm the next zone so the crossfade into it is ready.
+      preloadZone(fromIndex + 1);
     }
     if (toIndex !== currentTo) {
       const src = ZONE_IMAGES[toIndex];

@@ -357,8 +357,11 @@ def main():
         img = render_zone(idx, zone)
         out_path = OUT_DIR / zone["file"]
         img.save(out_path)
+        # The web page loads the compressed WebP (~15-20 KB vs ~2 MB PNG).
+        webp_path = out_path.with_suffix(".webp")
+        img.resize((1920, 1080), Image.LANCZOS).save(webp_path, "WEBP", quality=82, method=6)
         paths.append(out_path)
-        print(f"wrote {out_path}  {img.size}")
+        print(f"wrote {out_path} and {webp_path.name}  {img.size}")
     sheet = make_contact_sheet(paths)
     sheet_path = OUT_DIR / "zones-contact-sheet.png"
     sheet.save(sheet_path)
