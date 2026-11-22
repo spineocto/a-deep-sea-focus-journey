@@ -59,52 +59,52 @@ ZONES = [
     {
         "name": "zone-1-sunlit",
         "depth": "0-200m",
-        "top": (28, 65, 85),       # bright teal - much lighter
-        "bottom": (12, 38, 56),    # medium teal
+        "top": (45, 95, 115),      # bright teal - actually visible!
+        "bottom": (18, 52, 68),    # medium teal
         "eye_alpha": 0,            # no eye in sunlit
         "particles_brightness": (200, 215, 220),
         "particles_alpha_mult": 1.5,
-        "vignette_mult": 0.7,      # less vignette in bright zone
+        "vignette_mult": 0.4,      # minimal vignette in bright zone
     },
     {
         "name": "zone-2-twilight",
         "depth": "200-1000m",
-        "top": (15, 32, 58),       # indigo - noticeable drop
-        "bottom": (5, 12, 28),     # dark indigo
+        "top": (22, 42, 68),       # indigo - noticeable drop
+        "bottom": (8, 18, 38),     # dark indigo
         "eye_alpha": 80,           # faint eye starts here
         "particles_brightness": (160, 175, 185),
         "particles_alpha_mult": 1.0,
-        "vignette_mult": 1.0,
+        "vignette_mult": 0.8,
     },
     {
         "name": "zone-3-midnight",
         "depth": "1000-4000m",
-        "top": (8, 16, 32),        # blue-black - clear difference
-        "bottom": (2, 5, 14),      # very dark blue
+        "top": (12, 22, 42),       # blue-black - clear difference
+        "bottom": (3, 8, 18),      # very dark blue
         "eye_alpha": 110,          # eye more visible
         "particles_brightness": (140, 155, 165),
         "particles_alpha_mult": 0.7,
-        "vignette_mult": 1.2,
+        "vignette_mult": 1.1,
     },
     {
         "name": "zone-4-abyssal",
         "depth": "4000-6000m",
-        "top": (5, 8, 18),         # ink black with violet hint
-        "bottom": (1, 2, 8),       # near black
+        "top": (8, 12, 24),        # ink black with violet hint
+        "bottom": (2, 4, 10),      # near black
         "eye_alpha": 140,          # eye prominent
         "particles_brightness": (120, 130, 145),
         "particles_alpha_mult": 0.5,
-        "vignette_mult": 1.4,
+        "vignette_mult": 1.3,
     },
     {
         "name": "zone-5-hadal",
         "depth": "6000m+",
-        "top": (3, 4, 10),         # almost black with subtle red
-        "bottom": (1, 1, 4),       # pure darkness
+        "top": (4, 6, 14),         # almost black with subtle hint
+        "bottom": (1, 2, 5),       # pure darkness
         "eye_alpha": 170,          # eye most visible
         "particles_brightness": (100, 110, 125),
         "particles_alpha_mult": 0.3,
-        "vignette_mult": 1.6,      # strongest vignette
+        "vignette_mult": 1.5,      # strongest vignette
     },
 ]
 
