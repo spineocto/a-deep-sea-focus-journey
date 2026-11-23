@@ -414,9 +414,10 @@ body.ambient-motion-off .scene[data-state='DISTRACTED'] .bell-bob { animation: n
   position: absolute;
   right: 34px;
   top: -7px;
-  font-family: var(--font-display);
-  font-variant-numeric: oldstyle-nums;
-  font-size: 12px;
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-variant-numeric: tabular-nums;
+  font-size: 11px;
   letter-spacing: 0.04em;
   color: var(--light-faint);
   white-space: nowrap;

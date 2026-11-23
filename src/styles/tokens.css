@@ -1,9 +1,12 @@
 /* Design tokens. Fonts: IM Fell English (storybook display, OFL), Caveat (handwritten
    naturalist notes, OFL), Inter (the one small-UI body face), and
-   IBM Plex Mono only for the live-ticking left-edge readouts that need
-   column alignment. Decorative numerals (durations, codex count, depth
-   ticks, card depth) use IM Fell English via .num so the storybook face
-   is everywhere. No font-family may be declared outside this file.
+   IBM Plex Mono for live-ticking left-edge readouts that need column
+   alignment, plus any other short numeral spot where a lone "0" would
+   otherwise hit the IM Fell static webfont's broken standalone-zero glyph
+   (see .depth-tick-num and #rounds-display). Decorative numerals
+   (durations, codex count, card depth range) use IM Fell English via .num
+   since they are never a lone zero. No font-family may be declared
+   outside this file.
    The only warm colour on screen is the bell's glow (--warm). */
 :root {
   --sea-0: #02050a;
