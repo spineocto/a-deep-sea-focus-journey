@@ -322,33 +322,38 @@ def zone5():
         rx, ry = W * (0.58 - 0.012 * k), H * 0.36
         pts = [(cx - rx * math.cos(a) * (1 + 0.05 * math.sin(a * 3)), cy - ry * math.sin(a)) for a in np.linspace(0.05, 1.45, 46)]
         wd = 34 - 2 * k
-        bd.line(pts, fill=(70, 40, 52, 255), width=wd, joint="curve")
-        rd.line([(x - wd * 0.35, y - wd * 0.2) for x, y in pts], fill=(190, 46, 50, 200), width=4, joint="curve")
+        bd.line(pts, fill=(54, 30, 40, 255), width=wd, joint="curve")
+        rd.line([(x - wd * 0.35, y - wd * 0.2) for x, y in pts], fill=(150, 36, 40, 150), width=3, joint="curve")
     spine = [(W * (0.97 - 0.012 * math.sin(i / 4.0)), H * i / 40) for i in range(41)]
-    bd.line(spine, fill=(62, 36, 46, 255), width=58)
-    rd.line([(x - 22, y) for x, y in spine], fill=(140, 34, 38, 120), width=3)
+    bd.line(spine, fill=(48, 28, 36, 255), width=58)
+    rd.line([(x - 22, y) for x, y in spine], fill=(120, 30, 34, 90), width=3)
     # a limb: a tentacle sagging down the left side, suckers along its length
     limb = [(W * 0.14, -30)] + [(W * (0.16 + 0.26 * (i / 30) ** 1.4), H * (0.55 * (i / 30))) for i in range(1, 31)]
     for i in range(len(limb) - 1):
         f = i / (len(limb) - 1)
-        bd.line([limb[i], limb[i + 1]], fill=(58, 34, 46, 255), width=int(78 * (1 - f) + 10), joint="curve")
+        bd.line([limb[i], limb[i + 1]], fill=(46, 28, 38, 255), width=int(78 * (1 - f) + 10), joint="curve")
         if i % 2 == 0:
             sx, sy = limb[i][0] + (60 * (1 - f) + 6), limb[i][1]
             r = 11 * (1 - f) + 2.5
-            rd.ellipse((sx - r, sy - r, sx + r, sy + r), outline=(150, 36, 40, 150), width=2)
-    # the eye: half-lidded, deep in the middle distance
-    ex, ey, er = W * 0.585, H * 0.80, 150
-    for ring, col in ((er, (84, 18, 22, 255)), (er * 0.78, (150, 28, 28, 255)), (er * 0.5, (40, 8, 12, 255))):
+            rd.ellipse((sx - r, sy - r, sx + r, sy + r), outline=(130, 32, 36, 120), width=2)
+    # the eye: low in the trench, mostly below the frame under a heavy lid, so
+    # only a sliver of iris and a single reflective glint read at first. Drawn
+    # very dark; the slow open/close + gaze shift live in the CSS (.hadal-eye)
+    # over this painting, not baked in.
+    ex, ey, er = W * 0.60, H * 1.03, 184
+    for ring, col in ((er, (40, 10, 14, 255)), (er * 0.76, (74, 16, 18, 255)), (er * 0.46, (22, 6, 10, 255))):
         bd.ellipse((ex - ring, ey - ring * 0.82, ex + ring, ey + ring * 0.82), fill=col)
-    bd.ellipse((ex - 16, ey - er * 0.5, ex + 16, ey + er * 0.5), fill=(2, 0, 2, 255))   # the slit
-    bd.rectangle((ex - er - 4, ey - er * 0.9, ex + er + 4, ey - er * 0.12), fill=(0, 0, 0, 0))
-    bd.pieslice((ex - er * 1.05, ey - er * 0.9, ex + er * 1.05, ey + er * 0.9), 180, 360, fill=(7, 4, 8, 255))  # the upper lid
-    rd.arc((ex - er * 1.05, ey - er * 0.9, ex + er * 1.05, ey + er * 0.9), 180, 360, fill=(150, 36, 40, 160), width=3)
-    big = big.filter(ImageFilter.GaussianBlur(1.6))
+    bd.ellipse((ex - 15, ey - er * 0.5, ex + 15, ey + er * 0.5), fill=(2, 0, 2, 255))   # the slit
+    # a single cold glint on the wet iris: the one thing the eye is caught by
+    rd.ellipse((ex - er * 0.30 - 9, ey - er * 0.34 - 9, ex - er * 0.30 + 9, ey - er * 0.34 + 9), fill=(150, 150, 150, 70))
+    # the heavy upper lid sits low, covering most of the eye
+    bd.pieslice((ex - er * 1.08, ey - er * 0.62, ex + er * 1.08, ey + er * 0.9), 180, 360, fill=(6, 3, 7, 255))
+    rd.arc((ex - er * 1.08, ey - er * 0.62, ex + er * 1.08, ey + er * 0.9), 188, 352, fill=(120, 28, 32, 90), width=2)
+    big = big.filter(ImageFilter.GaussianBlur(2.2))
     rim = rim.filter(ImageFilter.GaussianBlur(1.0))
     # keep the huge things dim: seen, not lit
     ba = np.asarray(big, np.float32)
-    ba[..., 3] *= 0.95
+    ba[..., 3] *= 0.8
     arr = over(arr, Image.fromarray(ba.astype("uint8")))
     arr = over(arr, rim)
 

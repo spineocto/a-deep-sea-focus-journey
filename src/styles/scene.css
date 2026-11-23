@@ -611,3 +611,72 @@ body.ambient-motion-off .lamp-glow { animation: none; }
   background: radial-gradient(ellipse 52% 78% at 50% 54%, transparent 28%, rgba(0, 0, 0, 0.78) 72%, rgba(0, 0, 0, 0.96) 100%);
 }
 .scene[data-zone='4'] .paper-wash { opacity: 0.1; }
+
+/* ---- Hadal eye --------------------------------------------------------
+   A huge, near-invisible eye low in the trench. It is drawn dark into the
+   zone-5 painting; this layer adds a slow, barely-there life: a faint iris
+   glow that waxes and wanes (a slow open/close) and a cold glint that drifts
+   a little toward the bell. Hidden outside the hadal zone. Low contrast on
+   purpose: you only catch it after a moment. */
+.hadal-eye {
+  position: absolute;
+  left: 60%;
+  bottom: -20%;
+  width: 46vw;
+  height: 46vw;
+  transform: translateX(-50%);
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 3.5s var(--ease-slow);
+  background: radial-gradient(
+    ellipse 50% 42% at 50% 50%,
+    rgba(150, 26, 26, 0.5) 0%,
+    rgba(96, 16, 18, 0.32) 32%,
+    rgba(10, 2, 4, 0) 66%
+  );
+  mix-blend-mode: screen;
+}
+
+.scene[data-zone='4'] .hadal-eye {
+  opacity: 1;
+  animation: hadal-eye-open 26s ease-in-out infinite;
+}
+
+.hadal-eye-glint {
+  position: absolute;
+  left: 38%;
+  top: 30%;
+  width: 1.1vw;
+  height: 1.1vw;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(210, 210, 215, 0.85), rgba(210, 210, 215, 0) 70%);
+  filter: blur(0.5px);
+}
+
+.scene[data-zone='4'] .hadal-eye-glint {
+  animation: hadal-gaze 34s ease-in-out infinite;
+}
+
+@keyframes hadal-eye-open {
+  0%, 100% { opacity: 0.35; transform: translateX(-50%) scaleY(0.86); }
+  46% { opacity: 0.35; transform: translateX(-50%) scaleY(0.86); }
+  60% { opacity: 1; transform: translateX(-50%) scaleY(1.06); }
+  74% { opacity: 0.35; transform: translateX(-50%) scaleY(0.86); }
+}
+
+/* Gaze drifts left-and-up, toward where the bell hangs. */
+@keyframes hadal-gaze {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(-2.4vw, -1.1vw); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene[data-zone='4'] .hadal-eye,
+  .scene[data-zone='4'] .hadal-eye-glint { animation: none; }
+  .scene[data-zone='4'] .hadal-eye { opacity: 0.5; }
+}
+
+body.ambient-motion-off .scene[data-zone='4'] .hadal-eye,
+body.ambient-motion-off .scene[data-zone='4'] .hadal-eye-glint { animation: none; }
+body.ambient-motion-off .scene[data-zone='4'] .hadal-eye { opacity: 0.5; }

@@ -70,7 +70,9 @@
 
 .card-zh {
   margin-top: 6px;
-  font-size: 13px;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 15px;
   letter-spacing: 0.12em;
   color: #4a4032;
 }
@@ -93,15 +95,18 @@
 }
 
 .card-meta dt {
-  font-size: 9px;
-  letter-spacing: var(--track-label);
-  text-transform: uppercase;
+  font-family: var(--font-display);
+  font-variant: small-caps;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: lowercase;
   color: #6a5c48;
   margin-bottom: 5px;
 }
 
 .card-meta dd {
-  font-size: 13px;
+  font-family: var(--font-display);
+  font-size: 16px;
   color: var(--ink);
 }
 
@@ -142,9 +147,11 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 10px;
-  letter-spacing: var(--track-label);
-  text-transform: uppercase;
+  font-family: var(--font-display);
+  font-variant: small-caps;
+  font-size: 15px;
+  letter-spacing: 0.14em;
+  text-transform: lowercase;
   color: var(--light-dim);
   margin-bottom: 28px;
 }
@@ -209,13 +216,16 @@
 }
 
 .codex-item-sub {
-  font-size: 9px;
-  letter-spacing: var(--track-label);
-  text-transform: uppercase;
+  font-family: var(--font-display);
+  font-variant: small-caps;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  text-transform: lowercase;
   color: var(--light-faint);
 }
 
 .codex-item-sub .mono {
+  font-variant: normal;
   letter-spacing: 0.05em;
   text-transform: none;
 }
