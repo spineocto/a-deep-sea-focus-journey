@@ -19,6 +19,17 @@ import { storage, type StoredData } from './storage.js';
 import { demoMode } from './demo-mode.js';
 import { distractionDetector } from './distraction-detector.js';
 import { Config } from './config.js';
+import {
+  createInitialSessionState,
+  registerDistraction,
+  completeRound,
+  type SessionState,
+} from './session.js';
+import {
+  makeDiveLogPage,
+  addPage,
+  type DiveLogPage,
+} from './dive-log.js';
 
 /**
  * 應用程式全域狀態
@@ -44,6 +55,12 @@ export interface AppGlobalState {
   
   // 演示模式
   isDemoMode: boolean;
+
+  // Escalating-eye + focus-goal session state.
+  session: SessionState;
+
+  // Handwritten dive-log pages (newest first).
+  diveLog: DiveLogPage[];
 }
 
 /**
@@ -73,6 +90,18 @@ export interface AppController {
   // 手動分心測試用：讓 DISTRACTED 狀態從現在開始計時 3 秒
   markDistractionStart(): void;
 
+  /** Record that a distraction just happened (raises the eye, counts it). */
+  registerDistraction(): void;
+
+  /** Set the one-line focus goal for the current/next dive. */
+  setFocusGoal(goal: string): void;
+
+  /** The dive-log page produced by the last completed round, if any. */
+  consumeLastDiveLogPage(): DiveLogPage | null;
+
+  /** Register a callback fired once per newly completed dive-log page. */
+  onDiveLogPage(cb: (page: DiveLogPage) => void): void;
+
   // 休息進度（供 UI 顯示剩餘時間與氧氣回充；非休息狀態回傳 null）
   getBreakProgress(): { remainingMs: number; durationMs: number } | null;
 
@@ -94,6 +123,16 @@ export class AppControllerImpl implements AppController {
   private codexState: CodexState;
   private completedRounds = 0;
   private endingSeen = false;
+
+  // Session (escalating eye + focus goal) and dive-log pages.
+  private session: SessionState = createInitialSessionState();
+  private diveLog: DiveLogPage[] = [];
+  private lastDiveLogPage: DiveLogPage | null = null;
+  private diveLogCallbacks: Array<(page: DiveLogPage) => void> = [];
+  // Creature ids newly unlocked during the current round (for the dive log).
+  private roundNewCreatureIds: string[] = [];
+  // Selected duration (minutes) for the active round, for the dive log.
+  private roundDurationMin = 0;
   
   // DISTRACTED 狀態追蹤
   private distractedStartAt = 0;
@@ -137,7 +176,9 @@ export class AppControllerImpl implements AppController {
       codexState: this.codexState,
       completedRounds: this.completedRounds,
       endingSeen: this.endingSeen,
-      isDemoMode: demoMode.isEnabled
+      isDemoMode: demoMode.isEnabled,
+      session: this.session,
+      diveLog: this.diveLog,
     };
   }
   
@@ -146,12 +187,14 @@ export class AppControllerImpl implements AppController {
    */
   getCurrentData(): StoredData {
     return {
-      version: 1,
+      version: 2,
       totalDepth: this.depthState.totalDepth,
       completedRounds: this.completedRounds,
       endingSeen: this.endingSeen,
       codex: this.codexState,
       settings: {},
+      session: this.session,
+      diveLog: this.diveLog,
       currentState: {
         state: this.stateMachine.getState(),
         roundStartAt: this.timerState?.roundStartAt ?? null,
@@ -182,6 +225,9 @@ export class AppControllerImpl implements AppController {
     
     // 初始化 TimerState
     this.timerState = timer.start(durationMinutes, demoMode.isEnabled);
+    this.roundDurationMin = durationMinutes;
+    this.roundNewCreatureIds = [];
+    this.session = { ...this.session, roundDistractions: 0 };
     
     // 設定本輪開始深度
     this.depthState.roundStartDepth = this.depthState.totalDepth;
@@ -307,6 +353,8 @@ export class AppControllerImpl implements AppController {
       this.codexState = { unlockedCards: [] };
       this.completedRounds = 0;
       this.endingSeen = false;
+      this.session = createInitialSessionState();
+      this.diveLog = [];
       this.stateMachine.currentState = AppState.IDLE;
       this.timerState = null;
       return;
@@ -316,6 +364,9 @@ export class AppControllerImpl implements AppController {
     this.completedRounds = data.completedRounds;
     this.endingSeen = data.endingSeen;
     this.codexState = data.codex;
+    // Session + dive log (v2; old saves default to empty).
+    this.session = data.session ?? createInitialSessionState();
+    this.diveLog = data.diveLog ?? [];
     
     // 處理未完成狀態
     const savedState = data.currentState.state;
@@ -384,6 +435,31 @@ export class AppControllerImpl implements AppController {
    */
   markDistractionStart(): void {
     this.distractedStartAt = Date.now();
+  }
+
+  /**
+   * Record a distraction for the escalating eye: the watcher comes a step
+   * closer and the counters rise. Called from the real visibility path and
+   * from the manual test path when a distraction actually triggers.
+   */
+  registerDistraction(): void {
+    this.session = registerDistraction(this.session);
+    this.save();
+  }
+
+  setFocusGoal(goal: string): void {
+    this.session = { ...this.session, focusGoal: goal };
+    this.save();
+  }
+
+  consumeLastDiveLogPage(): DiveLogPage | null {
+    const page = this.lastDiveLogPage;
+    this.lastDiveLogPage = null;
+    return page;
+  }
+
+  onDiveLogPage(cb: (page: DiveLogPage) => void): void {
+    this.diveLogCallbacks.push(cb);
   }
 
   /**
@@ -471,11 +547,14 @@ export class AppControllerImpl implements AppController {
                         (this.completedRounds + 1) % Config.longBreakInterval === 0;
     
     // 5. 選擇卡片（修改 codexState，可能新增或更新）
-    codexManager.selectCardForRound(
+    const unlockResult = codexManager.selectCardForRound(
       this.depthState.totalDepth,
       this.codexState,
       shouldShowEnding
     );
+    if (!unlockResult.isDuplicate) {
+      this.roundNewCreatureIds.push(unlockResult.card.id);
+    }
     
     // 6. 增加完成輪數
     this.completedRounds += 1;
@@ -506,9 +585,47 @@ export class AppControllerImpl implements AppController {
     
     // 10. 清除 TimerState
     this.timerState = null;
-    
+
+    // 10b. Dive-log page + escalating-eye decay. The page records this round
+    //      (goal, depth, zone, creatures, distractions, closest eye) before
+    //      the session's per-round counters reset. A clean round eases the
+    //      eye back one step.
+    const completion = completeRound(this.session);
+    this.session = completion.session;
+    const page = makeDiveLogPage({
+      at: Date.now(),
+      goal: this.session.focusGoal,
+      durationMin: this.roundDurationMin,
+      depth: this.depthState.totalDepth,
+      zone: this.depthCalculator.getZone(this.depthState.totalDepth),
+      chapter: this.chapterForDepth(this.depthState.totalDepth),
+      creatures: this.roundNewCreatureIds.map(id => this.creatureName(id)),
+      distractions: completion.distractionsThisRound,
+      eyePeak: this.session.eyePeak,
+      sketchCardId: this.roundNewCreatureIds[this.roundNewCreatureIds.length - 1] ?? '',
+    });
+    this.diveLog = addPage(this.diveLog, page);
+    this.lastDiveLogPage = page;
+    this.roundNewCreatureIds = [];
+    for (const cb of this.diveLogCallbacks) cb(page);
+
     // 11. 儲存
     this.save();
+  }
+
+  /** Chapter number (1..5) for a depth, from the configured zones. */
+  private chapterForDepth(depth: number): number {
+    const d = Math.max(0, depth);
+    for (let i = 0; i < Config.zones.length; i++) {
+      const z = Config.zones[i];
+      if (z && d >= z.min && d < z.max) return i + 1;
+    }
+    return Config.zones.length;
+  }
+
+  /** English common name for a creature id (falls back to the id). */
+  private creatureName(id: string): string {
+    return codexManager.getCard(id)?.commonNameEn ?? id;
   }
   
   /**
@@ -537,6 +654,9 @@ export class AppControllerImpl implements AppController {
           // 觸發分心：轉換狀態
           this.stateMachine.transition({ type: 'DISTRACTION_DETECTED' });
           this.distractedStartAt = Date.now();
+
+          // Escalating eye: the watcher comes a step closer.
+          this.session = registerDistraction(this.session);
           
           // 計算上浮懲罰
           const penalty = distractionDetector.calculateRisePenalty(

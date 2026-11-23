@@ -188,7 +188,7 @@ describe('AppController', () => {
       
       const data = controller.getCurrentData();
       
-      expect(data.version).toBe(1);
+      expect(data.version).toBe(2);
       expect(data.totalDepth).toBe(0);
       expect(data.completedRounds).toBe(0);
       expect(data.endingSeen).toBe(false);

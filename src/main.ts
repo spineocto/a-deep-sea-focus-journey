@@ -22,6 +22,7 @@ import {
   updateDepthTicks,
 } from './preview.js';
 import { CREATURE_ART } from './creature-art.js';
+import { eyeCaption } from './session.js';
 import eyeUrl from '../art/out/eye.webp';
 import bellNormalUrl from '../art/out/bell-normal.webp';
 import bellAlertUrl from '../art/out/bell-alert.webp';
@@ -41,6 +42,8 @@ let selectedDuration: number | null = null;
 // 追蹤上一次的狀態用於偵測卡片揭露
 let previousState: AppState | null = null;
 let previousCodexCount = 0;
+/** Debug: pin the eye level (?eye=1|2|3) regardless of real distractions. */
+let eyeLevelOverride: number | null = null;
 
 /**
  * 更新按鈕顯示/隱藏狀態
@@ -246,7 +249,12 @@ function updateUI(): void {
 
   // 1. Caption under the timer. The two English system lines are fixed
   //    (never reworded), see .kiro/steering/product.md.
-  setText('state-display', CAPTIONS[currentState]);
+  setText(
+    'state-display',
+    currentState === AppState.DISTRACTED
+      ? eyeCaption(eyeLevelOverride ?? state.session.eyeLevel)
+      : CAPTIONS[currentState],
+  );
 
   // 2. Timer: remaining focus time, remaining break time, or the chosen length.
   let timeText = '--:--';
@@ -312,6 +320,11 @@ function updateUI(): void {
           ? 'sleeping'
           : 'normal';
     scene.setAttribute('data-mood', mood);
+    // Escalating eye: how close the watcher is (0..3), driven by the session.
+    // A debug override (?eye=1|2|3) pins it for screenshots.
+    const eyeLevel = eyeLevelOverride ?? state.session.eyeLevel;
+    scene.setAttribute('data-eye', String(eyeLevel));
+    scene.classList.toggle('eye-demo', eyeLevelOverride !== null);
   }
 
   // Quiet zone title on zone entry.
@@ -471,6 +484,7 @@ function handleTestDistraction(): void {
     // 轉換到 DISTRACTED 狀態
     state.stateMachine.transition({ type: 'DISTRACTION_DETECTED' });
     appController.markDistractionStart();
+    appController.registerDistraction();
     
     // 計算上浮懲罰
     const penalty = distractionDetector.calculateRisePenalty(
@@ -608,6 +622,20 @@ function initApp(): void {
   const revealParam = urlParams.get('reveal');
   if (debugOn && revealParam) {
     window.setTimeout(() => playUnlock(revealParam === '1' ? CREATURE_CARDS[0]?.id : revealParam), 400);
+  }
+
+  // Debug: escalating-eye level. ?eye=1|2|3 pins the level; the buttons set
+  // it live. updateUI reads eyeLevelOverride each frame when it is non-null.
+  const setEyeOverride = (level: number | null): void => {
+    eyeLevelOverride = level;
+    updateUI();
+  };
+  document.getElementById('debug-eye-1')?.addEventListener('click', () => setEyeOverride(1));
+  document.getElementById('debug-eye-2')?.addEventListener('click', () => setEyeOverride(2));
+  document.getElementById('debug-eye-3')?.addEventListener('click', () => setEyeOverride(3));
+  const eyeParam = urlParams.get('eye');
+  if (debugOn && eyeParam && ['1', '2', '3'].includes(eyeParam)) {
+    setEyeOverride(parseInt(eyeParam, 10));
   }
 
   // Sound toggle (muted by default).

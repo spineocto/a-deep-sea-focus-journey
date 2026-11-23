@@ -36,7 +36,7 @@ describe('Storage Module - Basic Verification', () => {
 
   it('should save and load data successfully', () => {
     const testData: StoredData = {
-      version: 1,
+      version: 2,
       totalDepth: 1234.5,
       completedRounds: 3,
       endingSeen: false,
@@ -71,7 +71,7 @@ describe('Storage Module - Basic Verification', () => {
 
     // 驗證
     expect(loaded).not.toBeNull();
-    expect(loaded?.version).toBe(1);
+    expect(loaded?.version).toBe(2);
     expect(loaded?.totalDepth).toBe(1234.5);
     expect(loaded?.completedRounds).toBe(3);
     expect(loaded?.endingSeen).toBe(false);
@@ -81,7 +81,7 @@ describe('Storage Module - Basic Verification', () => {
 
   it('should use different keys for normal and demo mode', () => {
     const normalData: StoredData = {
-      version: 1,
+      version: 2,
       totalDepth: 100,
       completedRounds: 1,
       endingSeen: false,
@@ -135,7 +135,7 @@ describe('Storage Module - Basic Verification', () => {
 
   it('should clear specific mode data', () => {
     const testData: StoredData = {
-      version: 1,
+      version: 2,
       totalDepth: 100,
       completedRounds: 1,
       endingSeen: false,
@@ -168,7 +168,7 @@ describe('Storage Module - Basic Verification', () => {
 
   it('should clear all data', () => {
     const testData: StoredData = {
-      version: 1,
+      version: 2,
       totalDepth: 100,
       completedRounds: 1,
       endingSeen: false,
@@ -202,7 +202,7 @@ describe('Storage Module - Basic Verification', () => {
   it('should validate data format correctly', () => {
     // 測試缺少必要欄位的資料
     const invalidData = {
-      version: 1,
+      version: 2,
       totalDepth: 100
       // 缺少其他必要欄位
     };
@@ -239,5 +239,38 @@ describe('Storage Module - Basic Verification', () => {
     // 應該嘗試遷移但失敗，回傳 null
     const loaded = storage.load(false);
     expect(loaded).toBeNull();
+  });
+
+  it('migrates a v1 save to v2, keeping progress and defaulting new fields', () => {
+    const v1 = {
+      version: 1,
+      totalDepth: 4321,
+      completedRounds: 7,
+      endingSeen: true,
+      codex: { unlockedCards: [{ cardId: 'barreleye', unlockedAt: 1, obtainedCount: 2 }] },
+      settings: {},
+      currentState: {
+        state: AppState.IDLE,
+        roundStartAt: null,
+        lastSeenAt: null,
+        hiddenAt: null,
+        selectedDurationMs: null,
+        distractionPenaltyMs: 0,
+        roundStartDepth: 4321,
+        roundDescentDepth: 0,
+        roundRisePenalty: 0,
+      },
+    };
+    localStorageMock.setItem('deep-sea-focus', JSON.stringify(v1));
+
+    const loaded = storage.load(false);
+    expect(loaded).not.toBeNull();
+    expect(loaded?.version).toBe(2);
+    expect(loaded?.totalDepth).toBe(4321);
+    expect(loaded?.completedRounds).toBe(7);
+    expect(loaded?.codex.unlockedCards[0]?.cardId).toBe('barreleye');
+    // New fields are absent (undefined), so callers apply their own defaults.
+    expect(loaded?.session).toBeUndefined();
+    expect(loaded?.diveLog).toBeUndefined();
   });
 });

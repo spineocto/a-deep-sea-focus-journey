@@ -7,6 +7,8 @@
 
 import type { AppState } from './state-machine.js';
 import type { CodexState } from './codex-manager.js';
+import type { SessionState } from './session.js';
+import type { DiveLogPage } from './dive-log.js';
 
 /**
  * 使用者設定介面（目前暫無設定項目，保留供未來擴充）
@@ -25,6 +27,10 @@ export interface StoredData {
   endingSeen: boolean; // 是否已經看過 ENDING 狀態
   codex: CodexState; // 圖鑑狀態
   settings: UserSettings; // 使用者設定
+  /** Escalating-eye + focus-goal session state (v2). Optional for old saves. */
+  session?: SessionState;
+  /** Handwritten dive-log pages, newest first (v2). Optional for old saves. */
+  diveLog?: DiveLogPage[];
   currentState: {
     state: AppState; // 當前狀態
     roundStartAt: number | null; // 本輪開始時間戳 (ms)
@@ -73,7 +79,7 @@ const STORAGE_KEY = 'deep-sea-focus';
 const DEMO_STORAGE_KEY = 'demo_deep-sea-focus';
 
 // 當前資料版本號
-const CURRENT_VERSION = 1;
+const CURRENT_VERSION = 2;
 
 /**
  * Storage 實作類別
@@ -160,12 +166,17 @@ class StorageImpl implements Storage {
    * @returns 遷移後的資料，若無法遷移則回傳 null
    */
   private migrateData(data: any): StoredData | null {
-    // 未來實作遷移邏輯
-    // 例如：從版本 1 遷移到版本 2
-    // if (data.version === 1) {
-    //   return this.migrateFromV1ToV2(data);
-    // }
-    
+    // v1 -> v2: session + dive-log fields were added. Old saves are otherwise
+    // compatible, so fill the new fields with empty defaults rather than
+    // discarding the player's progress.
+    if (data && data.version === 1) {
+      const migrated = { ...data, version: CURRENT_VERSION } as StoredData;
+      if (!migrated.session) delete (migrated as { session?: unknown }).session;
+      if (!migrated.diveLog) delete (migrated as { diveLog?: unknown }).diveLog;
+      if (this.isValidStoredData(migrated)) return migrated;
+      return null;
+    }
+
     // 目前無法遷移，回傳 null 表示使用預設值
     console.warn('Unable to migrate data from version', data.version);
     return null;
