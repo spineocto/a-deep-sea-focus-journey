@@ -728,3 +728,57 @@ body.ambient-motion-off .lamp-glow { animation: none; }
 body.ambient-motion-off .scene[data-zone='4'] .hadal-eye,
 body.ambient-motion-off .scene[data-zone='4'] .hadal-eye-glint { animation: none; }
 body.ambient-motion-off .scene[data-zone='4'] .hadal-eye { opacity: 0.5; }
+
+/* ---- Return reaction ----------------------------------------------------
+   After a distraction ends: the ink recedes slowly, the companion peeks out
+   from the bottom of the porthole, the cable creaks and a line appears.
+   Presentation only; the timer is untouched. */
+.scene.ink-demo .ink-bleed {
+  opacity: 0.95;
+  transform: scale(calc(1 / var(--ink-reach, 1)));
+}
+.scene.returning .ink-bleed {
+  transition: opacity 6.5s var(--ease-slow), transform 7s var(--ease-slow);
+}
+.scene.returning .co-lean { animation: co-peek 7s ease-in-out 1; }
+.scene.returning .cable { animation: cable-creak 2.4s ease-in-out 1; transform-origin: 50% 100%; }
+
+@keyframes co-peek {
+  0%, 22% { transform: translateY(190px); }
+  48%, 70% { transform: translateY(166px); }
+  100% { transform: translate(11px, 3px) rotate(3.5deg); }
+}
+@keyframes cable-creak {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  18% { transform: translateX(1px) rotate(0.35deg); }
+  34% { transform: translateX(-1px) rotate(-0.3deg); }
+  58% { transform: translateX(1.5px) rotate(0.45deg); }
+  80% { transform: translateX(-0.5px) rotate(-0.15deg); }
+}
+
+.return-line {
+  position: absolute;
+  left: 50%;
+  top: 74%;
+  z-index: 6;
+  transform: translateX(-50%);
+  font-family: var(--font-hand);
+  font-size: 30px;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  color: var(--light);
+  opacity: 0;
+  pointer-events: none;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.8);
+}
+.scene.returning .return-line { animation: return-line 7.5s ease-in-out 1; }
+@keyframes return-line {
+  0%, 30% { opacity: 0; transform: translateX(-50%) translateY(6px); }
+  50%, 78% { opacity: 0.85; transform: translateX(-50%) translateY(0); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-4px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene.returning .co-lean, .scene.returning .cable { animation: none; }
+  .scene.returning .ink-bleed { transition: opacity 1s linear; }
+}

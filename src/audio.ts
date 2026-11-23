@@ -12,12 +12,15 @@
  * Both files are CC0. Vite serves public/ at the site root.
  */
 
+import { createSynth } from './synth.js';
+
 const RUMBLE_URL = '/audio/deep-rumble.mp3';
 const PING_URL = '/audio/sonar-ping.mp3';
 const STORAGE_KEY = 'audio-enabled';
 const AMBIENCE_VOLUME = 0.25;
 const PING_VOLUME = 0.5;
 const FADE_MS = 1500;
+const CREAK_VOLUME = 0.05;
 
 export interface AudioController {
   isEnabled(): boolean;
@@ -29,6 +32,8 @@ export interface AudioController {
   stopAmbience(): void;
   /** Play the sonar ping once (no-op if muted). */
   ping(): void;
+  /** A quiet cable creak for the return reaction (no-op if muted). */
+  creak(): void;
 }
 
 export function createAudioController(): AudioController {
@@ -40,6 +45,7 @@ export function createAudioController(): AudioController {
   let ping: HTMLAudioElement | null = null;
   let fadeTimer: number | null = null;
   let ambienceWanted = false;
+  const synth = createSynth();
 
   function ensureElements(): void {
     if (typeof Audio === 'undefined') return;
@@ -119,6 +125,10 @@ export function createAudioController(): AudioController {
     },
     startAmbience,
     stopAmbience,
+    creak(): void {
+      if (!enabled) return;
+      synth.creak(CREAK_VOLUME);
+    },
     ping(): void {
       if (!enabled) return;
       ensureElements();

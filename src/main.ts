@@ -237,6 +237,11 @@ function updateUI(): void {
     previousCodexCount = state.codexState.unlockedCards.length;
   }
   
+  // Coming back after a distraction: the ink recedes and the companion peeks out.
+  if (previousState === AppState.DISTRACTED && currentState === AppState.FOCUSING) {
+    playReturn();
+  }
+
   // 更新前一次狀態
   previousState = currentState;
   
@@ -458,6 +463,27 @@ function hideCardReveal(): void {
     modal.classList.remove('active');
   }
   showPendingDiveLog();
+}
+
+// ---- Return reaction -------------------------------------------------------
+
+let returnTimer: number | null = null;
+const RETURN_MS = 8000;
+
+/**
+ * The reaction when the user comes back after looking away: ink recedes slowly,
+ * the octopus peeks out, the cable creaks (sound only if on) and a handwritten
+ * line appears. Pure presentation: it never touches the timer or state.
+ */
+function playReturn(): void {
+  const scene = document.getElementById('app');
+  if (!scene) return;
+  scene.classList.remove('returning');
+  void scene.offsetWidth; // restart the CSS animations
+  scene.classList.add('returning');
+  audio.creak();
+  if (returnTimer !== null) clearTimeout(returnTimer);
+  returnTimer = window.setTimeout(() => scene.classList.remove('returning'), RETURN_MS);
 }
 
 // ---- Dive log -------------------------------------------------------------
@@ -703,6 +729,18 @@ function initApp(): void {
     const page = pages.find(p => p.id === id);
     if (page) showDiveLog(page);
   });
+
+  // Debug: ?debug=1&return=1 holds the ink in, then plays the return reaction.
+  const playReturnDemo = (): void => {
+    const scene = document.getElementById('app');
+    scene?.classList.add('ink-demo');
+    window.setTimeout(() => {
+      scene?.classList.remove('ink-demo');
+      playReturn();
+    }, 1800);
+  };
+  document.getElementById('debug-return')?.addEventListener('click', playReturnDemo);
+  if (debugOn && urlParams.get('return') === '1') window.setTimeout(playReturnDemo, 500);
 
   // Dive-log overlay buttons; a new page from a finished round waits for the card.
   document.getElementById('dive-log-close')?.addEventListener('click', hideDiveLog);
