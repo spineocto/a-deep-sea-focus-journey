@@ -22,6 +22,9 @@ import {
   updateDepthTicks,
 } from './preview.js';
 import { CREATURE_ART } from './creature-art.js';
+import paperUrl from '../art/out/paper.webp';
+import { renderPageHtml, sampleDiveLogPage, exportPagePng, escapeHtml } from './dive-log-render.js';
+import { formatLogDate, logFilename, type DiveLogPage } from './dive-log.js';
 import { eyeCaption } from './session.js';
 import eyeUrl from '../art/out/eye.webp';
 import bellNormalUrl from '../art/out/bell-normal.webp';
@@ -375,6 +378,9 @@ function updateUI(): void {
     pin.classList.toggle('show', diving && goal.length > 0);
     setText('goal-pin-text', goal);
   }
+  // 12. Dive log: the Log tab follows real state; a fresh page opens after the card.
+  if (!logShowcaseLock) renderLogList(state.diveLog);
+  showPendingDiveLog();
   const goalInput = document.getElementById('goal-input') as HTMLInputElement | null;
   if (goalInput && document.activeElement !== goalInput && goalInput.value !== goal) {
     goalInput.value = goal;
@@ -451,6 +457,82 @@ function hideCardReveal(): void {
   if (modal) {
     modal.classList.remove('active');
   }
+  showPendingDiveLog();
+}
+
+// ---- Dive log -------------------------------------------------------------
+
+let pendingLogPage: DiveLogPage | null = null;
+let shownLogPage: DiveLogPage | null = null;
+let logKey = '';
+let logShowcaseLock = false;
+
+function showDiveLog(page: DiveLogPage): void {
+  const host = document.getElementById('dive-log-page');
+  const overlay = document.getElementById('dive-log');
+  if (!host || !overlay) return;
+  shownLogPage = page;
+  host.innerHTML = renderPageHtml(page, CREATURE_ART[page.sketchCardId]);
+  overlay.classList.add('active');
+}
+
+function hideDiveLog(): void {
+  document.getElementById('dive-log')?.classList.remove('active');
+  shownLogPage = null;
+}
+
+/** Show the page written at the end of a round, once no card is on screen. */
+function showPendingDiveLog(): void {
+  if (!pendingLogPage) return;
+  if (document.getElementById('card-reveal')?.classList.contains('active')) return;
+  const page = pendingLogPage;
+  pendingLogPage = null;
+  showDiveLog(page);
+}
+
+async function saveDiveLogPage(): Promise<void> {
+  const page = shownLogPage;
+  if (!page) return;
+  const blob = await exportPagePng(page, CREATURE_ART[page.sketchCardId], paperUrl);
+  if (!blob) return;
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = logFilename(page);
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+function renderLogList(pages: readonly DiveLogPage[]): void {
+  const key = pages.map(p => p.id).join('|');
+  if (key === logKey) return;
+  logKey = key;
+  const list = document.getElementById('log-display');
+  if (!list) return;
+  if (pages.length === 0) {
+    list.innerHTML = '<p class="log-empty">No pages yet. Each finished dive writes one.</p>';
+    return;
+  }
+  list.innerHTML = pages.map(p =>
+    `<button class="log-entry" data-log-id="${p.id}">` +
+    `<span class="log-entry-date">${escapeHtml(formatLogDate(p.at))}</span>` +
+    `<span class="log-entry-goal">${escapeHtml(p.goal !== '' ? p.goal : 'no goal written')}</span>` +
+    `<span class="log-entry-meta"><span class="num">${p.depth.toLocaleString('en-US')}</span> m, ${escapeHtml(p.zone)}</span>` +
+    `</button>`
+  ).join('');
+}
+
+/** Debug: fill the Log tab with sample pages without touching storage. */
+function sampleLogPages(): DiveLogPage[] {
+  const base = sampleDiveLogPage();
+  const day = 86_400_000;
+  return [
+    base,
+    { ...base, id: 2, at: base.at - day, goal: 'Reply to every open email', depth: 620, zone: 'Twilight', chapter: 2, creatures: ['Moon Jellyfish'], distractions: 0, eyePeak: 0, sketchCardId: 'moon-jellyfish' },
+    { ...base, id: 3, at: base.at - 2 * day, goal: '', depth: 310, zone: 'Sunlit', chapter: 1, creatures: [], distractions: 1, eyePeak: 1, sketchCardId: '' },
+  ];
 }
 
 /**
@@ -583,6 +665,7 @@ function initApp(): void {
       debugPanel?.classList.toggle('hidden');
     }
     if (e.key === 'Escape') {
+      hideDiveLog();
       setCodexOpen(false);
       codexShowcaseLock = false;
       setDepthOverride(null);
@@ -597,6 +680,48 @@ function initApp(): void {
   };
   codexToggle?.addEventListener('click', () => setCodexOpen(codexPanel?.hidden ?? false));
   document.getElementById('codex-close')?.addEventListener('click', () => setCodexOpen(false));
+
+  // Codex drawer tabs: creatures / dive log.
+  const setCodexTab = (tab: 'creatures' | 'log'): void => {
+    const isLog = tab === 'log';
+    document.getElementById('codex-display')?.toggleAttribute('hidden', isLog);
+    document.getElementById('log-display')?.toggleAttribute('hidden', !isLog);
+    const tc = document.getElementById('tab-creatures');
+    const tl = document.getElementById('tab-log');
+    tc?.setAttribute('aria-selected', String(!isLog));
+    tl?.setAttribute('aria-selected', String(isLog));
+    tc?.classList.toggle('faint', isLog);
+    tl?.classList.toggle('faint', !isLog);
+  };
+  document.getElementById('tab-creatures')?.addEventListener('click', () => setCodexTab('creatures'));
+  document.getElementById('tab-log')?.addEventListener('click', () => setCodexTab('log'));
+  document.getElementById('log-display')?.addEventListener('click', (e) => {
+    const entry = (e.target as HTMLElement).closest<HTMLElement>('[data-log-id]');
+    if (!entry) return;
+    const id = Number(entry.dataset['logId']);
+    const pages = logShowcaseLock ? sampleLogPages() : appController.getState().diveLog;
+    const page = pages.find(p => p.id === id);
+    if (page) showDiveLog(page);
+  });
+
+  // Dive-log overlay buttons; a new page from a finished round waits for the card.
+  document.getElementById('dive-log-close')?.addEventListener('click', hideDiveLog);
+  document.getElementById('dive-log-save')?.addEventListener('click', () => { void saveDiveLogPage(); });
+  appController.onDiveLogPage((page) => { pendingLogPage = page; });
+
+  // Debug: ?debug=1&log=1 shows a sample page; ?log=tab fills the Log tab with samples.
+  const showSampleLog = (): void => showDiveLog(sampleDiveLogPage());
+  const showSampleLogTab = (): void => {
+    logShowcaseLock = true;
+    logKey = '';
+    renderLogList(sampleLogPages());
+    setCodexTab('log');
+    setCodexOpen(true);
+  };
+  document.getElementById('debug-log')?.addEventListener('click', showSampleLog);
+  const logParam = urlParams.get('log');
+  if (debugOn && logParam === '1') window.setTimeout(showSampleLog, 400);
+  if (debugOn && logParam === 'tab') window.setTimeout(showSampleLogTab, 400);
 
   // Debug codex showcase: open the drawer with a synthetic unlocked list,
   // via the debug buttons or ?codex=all / ?codex=mixed. Closing releases it.

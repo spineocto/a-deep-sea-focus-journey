@@ -166,7 +166,12 @@
           <span>CODEX</span>
           <button id="codex-close" class="quiet faint" aria-label="Close codex">CLOSE</button>
         </div>
+        <div class="codex-tabs" role="tablist">
+          <button id="tab-creatures" class="quiet" role="tab" aria-selected="true">CREATURES</button>
+          <button id="tab-log" class="quiet faint" role="tab" aria-selected="false">LOG</button>
+        </div>
         <div id="codex-display" class="codex-list"></div>
+        <div id="log-display" class="log-list" hidden></div>
       </aside>
 
       <!-- Debug tools: hidden unless ?debug=1 or Shift+D -->
@@ -229,6 +234,17 @@
         <span class="zone-title-epigraph" id="zone-title-epigraph"></span>
         <span class="zone-title-rule" aria-hidden="true"></span>
         <span class="zone-title-depth" id="zone-title-depth"></span>
+      </div>
+
+      <!-- Dive log: a handwritten logbook page after each completed round -->
+      <div id="dive-log" class="dive-log-overlay" role="dialog" aria-modal="true" aria-label="Dive log page">
+        <div class="dive-log-stage">
+          <div id="dive-log-page"></div>
+          <div class="dive-log-actions">
+            <button id="dive-log-save" class="quiet">SAVE PAGE</button>
+            <button id="dive-log-close" class="quiet">CLOSE</button>
+          </div>
+        </div>
       </div>
 
       <!-- Research-file card -->
