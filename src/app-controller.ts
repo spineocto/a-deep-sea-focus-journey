@@ -23,6 +23,7 @@ import {
   createInitialSessionState,
   registerDistraction,
   completeRound,
+  sanitizeFocusGoal,
   type SessionState,
 } from './session.js';
 import {
@@ -448,7 +449,7 @@ export class AppControllerImpl implements AppController {
   }
 
   setFocusGoal(goal: string): void {
-    this.session = { ...this.session, focusGoal: goal };
+    this.session = { ...this.session, focusGoal: sanitizeFocusGoal(goal) };
     this.save();
   }
 

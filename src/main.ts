@@ -365,6 +365,20 @@ function updateUI(): void {
 
   // 10. 更新按鈕可見性
   updateButtonVisibility(currentState, state.endingSeen);
+
+  // 11. Focus-goal slip: editable before the dive, pinned faintly during it.
+  const goal = state.session.focusGoal;
+  document.getElementById('goal-slip')?.classList.toggle('hidden', currentState !== AppState.IDLE);
+  const diving = currentState === AppState.FOCUSING || currentState === AppState.DISTRACTED;
+  const pin = document.getElementById('goal-pin');
+  if (pin) {
+    pin.classList.toggle('show', diving && goal.length > 0);
+    setText('goal-pin-text', goal);
+  }
+  const goalInput = document.getElementById('goal-input') as HTMLInputElement | null;
+  if (goalInput && document.activeElement !== goalInput && goalInput.value !== goal) {
+    goalInput.value = goal;
+  }
 }
 
 /**
@@ -705,6 +719,14 @@ function initApp(): void {
     selectDuration(duration25);
   }
   
+  // Focus goal slip: saved as you type (sanitized to 60 chars by the controller).
+  const goalInputEl = document.getElementById('goal-input') as HTMLInputElement | null;
+  goalInputEl?.addEventListener('input', () => appController.setFocusGoal(goalInputEl.value));
+  goalInputEl?.addEventListener('keydown', (e) => {
+    e.stopPropagation(); // typing must not trigger global shortcuts (Shift+D etc.)
+    if (e.key === 'Enter') goalInputEl.blur();
+  });
+
   // 3. 綁定 START DESCENT 按鈕
   const startButton = document.getElementById('start-button');
   const durationSelection = document.getElementById('duration-selection');
