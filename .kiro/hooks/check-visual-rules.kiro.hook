@@ -1,0 +1,14 @@
+{
+  "enabled": true,
+  "name": "Check styles against visual steering",
+  "description": "When a stylesheet in src/styles/ is saved, check it against .kiro/steering/visual-style.md and tokens.css and report violations.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": ["src/styles/**/*.css"]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A stylesheet in src/styles/ was just saved. Read .kiro/steering/visual-style.md and src/styles/tokens.css, then check the saved file for these violations and list each with file:line: (1) a font-family declared anywhere except tokens.css (fonts must come from the --font-* tokens); (2) any emoji character; (3) a button or control with a cyan or purple-blue gradient, or glassmorphism (backdrop-filter blur panels); (4) hard-coded colours that should use palette tokens (--light*, --line*, --sea-*, --ink, --paper, --warm, --wrong); small rgba() values for shadows and washes derived from the palette are fine; (5) an animation or transition added without a prefers-reduced-motion fallback. Report only real violations, one line each, and say 'no violations' if clean. Do not edit the file unless asked."
+  }
+}

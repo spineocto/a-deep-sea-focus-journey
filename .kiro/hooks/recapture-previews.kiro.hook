@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Recapture preview screenshots",
+  "description": "Manual: regenerate the round-5 preview screenshots in docs/preview/ with the capture script.",
+  "version": "1",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Recapture the preview screenshots. Run `npm run previews` (scripts/capture-previews.mjs; it needs puppeteer-core and Chrome, see the header of that script). It writes docs/preview/round5-*.png at 1440x900 using the ?debug=1 shortcuts (cover, focus goal, eye 1-3, return, dive log, log tab). Afterwards list the files written, open two or three to confirm they are not blank, and report anything that looks wrong. Do not commit."
+  }
+}

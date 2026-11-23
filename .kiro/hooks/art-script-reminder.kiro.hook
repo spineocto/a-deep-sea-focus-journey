@@ -1,0 +1,14 @@
+{
+  "enabled": true,
+  "name": "Art script changed: re-render and check sizes",
+  "description": "When a Python art script in art/ is saved, remind to re-render its output and re-check the webp sizes before committing.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": ["art/*.py"]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "An art script in art/ was just saved. Work out which outputs in art/out/ it produces (read its output paths). Remind me, in two or three lines, to re-render it (python3 art/<script>.py) and then re-check the sizes of the files it writes with `ls -l art/out/` against the budget in .kiro/steering/tech.md (small webp, only the opening assets loaded eagerly). Also say which committed files will change (art/out/*.webp) so the commit includes both the script and its output. Do not run the render yourself unless I ask."
+  }
+}

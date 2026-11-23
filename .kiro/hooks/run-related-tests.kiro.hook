@@ -1,0 +1,14 @@
+{
+  "enabled": true,
+  "name": "Run related tests on save",
+  "description": "When a TypeScript source file under src/ is saved, run the unit tests that cover it and report failures.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": ["src/**/*.ts"]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A TypeScript file under src/ was just saved. Find the test file(s) that cover it (same base name in src/__tests__/, e.g. src/session.ts -> src/__tests__/session.test.ts; for src/main.ts or src/app-controller.ts run app-controller.test.ts). Run only those with `npx vitest run <test file>` (never watch mode, no `cd`, no chaining). If there is no matching test file for a pure-logic module, say so in one line instead of inventing one. Report pass/fail briefly, and on failure show the failing assertion and the likely cause in the saved file."
+  }
+}
