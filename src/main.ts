@@ -24,6 +24,7 @@ import {
 import { CREATURE_ART } from './creature-art.js';
 import paperUrl from '../art/out/paper.webp';
 import { renderPageHtml, sampleDiveLogPage, exportPagePng, escapeHtml } from './dive-log-render.js';
+import { shouldShowCover, COVER_TIMELINE, COVER_SESSION_KEY } from './cover.js';
 import { formatLogDate, logFilename, type DiveLogPage } from './dive-log.js';
 import { eyeCaption } from './session.js';
 import eyeUrl from '../art/out/eye.webp';
@@ -465,6 +466,40 @@ function hideCardReveal(): void {
   showPendingDiveLog();
 }
 
+// ---- Storybook cover -------------------------------------------------------
+
+let coverTimers: number[] = [];
+
+/** Run the cover: hold closed, open onto Chapter I, fade out. Click or any key skips. */
+function playCover(): void {
+  const cover = document.getElementById('cover');
+  if (!cover) return;
+  coverTimers.forEach(clearTimeout);
+  cover.classList.remove('opening', 'leaving');
+  cover.classList.add('active');
+  const finish = (): void => {
+    coverTimers.forEach(clearTimeout);
+    coverTimers = [];
+    cover.classList.remove('active', 'opening', 'leaving');
+    window.removeEventListener('keydown', skip, true);
+    cover.removeEventListener('click', skip);
+  };
+  const skip = (): void => {
+    if (cover.classList.contains('leaving')) return;
+    cover.classList.add('opening', 'leaving');
+    coverTimers.forEach(clearTimeout);
+    coverTimers = [window.setTimeout(finish, 900)];
+  };
+  window.addEventListener('keydown', skip, true);
+  cover.addEventListener('click', skip);
+  coverTimers = [
+    window.setTimeout(() => cover.classList.add('opening'), COVER_TIMELINE.openAt),
+    window.setTimeout(() => cover.classList.add('leaving'), COVER_TIMELINE.fadeAt),
+    window.setTimeout(finish, COVER_TIMELINE.doneAt),
+  ];
+  try { sessionStorage.setItem(COVER_SESSION_KEY, '1'); } catch { /* private mode */ }
+}
+
 // ---- Return reaction -------------------------------------------------------
 
 let returnTimer: number | null = null;
@@ -729,6 +764,19 @@ function initApp(): void {
     const page = pages.find(p => p.id === id);
     if (page) showDiveLog(page);
   });
+
+  // Cover: once per session; ?debug=1&cover=1 always (and the debug button replays it).
+  let coverSeen = false;
+  try { coverSeen = sessionStorage.getItem(COVER_SESSION_KEY) === '1'; } catch { /* private mode */ }
+  document.getElementById('debug-cover')?.addEventListener('click', playCover);
+  if (shouldShowCover({
+    debug: debugOn,
+    forced: urlParams.get('cover') === '1',
+    seenThisSession: coverSeen,
+    idle: appController.getState().stateMachine.getState() === AppState.IDLE,
+  })) {
+    playCover();
+  }
 
   // Debug: ?debug=1&return=1 holds the ink in, then plays the return reaction.
   const playReturnDemo = (): void => {
