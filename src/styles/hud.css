@@ -361,7 +361,7 @@ body.ambient-motion-off .scene[data-zone='4'] .depth-readout { animation: none; 
   display: flex;
   flex-direction: column;
   gap: 2px;
-  width: 250px;
+  width: 280px;
   padding: 8px 14px 6px;
   color: var(--ink);
   background: var(--paper);
@@ -385,8 +385,12 @@ body.ambient-motion-off .scene[data-zone='4'] .depth-readout { animation: none; 
 }
 .goal-input {
   font-family: var(--font-hand);
-  font-size: 21px;
+  font-size: 18px;
   line-height: 1.2;
+  height: 2.5em; /* two lines; the text wraps at word boundaries */
+  resize: none;
+  overflow-y: auto;
+  scrollbar-width: none;
   color: var(--ink);
   background: transparent;
   border: 0;
@@ -403,10 +407,10 @@ body.ambient-motion-off .scene[data-zone='4'] .depth-readout { animation: none; 
   position: absolute;
   top: 74px;
   right: 40px;
-  max-width: 230px;
+  max-width: 248px; /* 224px of text plus padding; see GOAL_PIN_TEXT_WIDTH in main.ts */
   padding: 6px 12px;
   font-family: var(--font-hand);
-  font-size: 18px;
+  font-size: 17px;
   line-height: 1.2;
   text-transform: none;
   letter-spacing: 0;
@@ -419,3 +423,5 @@ body.ambient-motion-off .scene[data-zone='4'] .depth-readout { animation: none; 
   transition: opacity 1.6s var(--ease-slow);
 }
 .goal-pin.show { opacity: 0.2; }
+
+.goal-pin-line { display: block; white-space: nowrap; }

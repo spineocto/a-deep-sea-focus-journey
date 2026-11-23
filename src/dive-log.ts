@@ -28,6 +28,8 @@ export interface DiveLogPage {
   eyePeak: number;
   /** Which creature id to use for the tiny ink sketch (or '' for none). */
   sketchCardId: string;
+  /** True when this dive reached a deeper chapter than any earlier page. */
+  newZone?: boolean;
 }
 
 export interface DiveLogInput {
@@ -41,6 +43,7 @@ export interface DiveLogInput {
   distractions: number;
   eyePeak: number;
   sketchCardId: string;
+  newZone?: boolean;
 }
 
 export function makeDiveLogPage(input: DiveLogInput): DiveLogPage {
@@ -56,6 +59,7 @@ export function makeDiveLogPage(input: DiveLogInput): DiveLogPage {
     distractions: Math.max(0, Math.floor(input.distractions)),
     eyePeak: Math.max(0, Math.min(3, Math.floor(input.eyePeak))),
     sketchCardId: input.sketchCardId,
+    newZone: input.newZone ?? false,
   };
 }
 
@@ -92,4 +96,81 @@ export function logFilename(page: DiveLogPage): string {
   const d = new Date(page.at);
   const p = (n: number): string => n.toString().padStart(2, '0');
   return `dive-log-${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}.png`;
+}
+
+/**
+ * Greedy word wrap that never breaks inside a word. `measure` returns the
+ * width of a string (canvas measureText in the browser, a fake in tests).
+ * If the text needs more than `maxLines`, the last line is cut at a word
+ * boundary and ends with an ellipsis. A single word wider than the line is
+ * only shortened (with an ellipsis) when it is the last line.
+ */
+export function wrapText(
+  measure: (s: string) => number,
+  text: string,
+  maxWidth: number,
+  maxLines: number,
+): string[] {
+  const words = text.split(/\s+/).filter((w) => w !== '');
+  if (words.length === 0 || maxLines < 1) return [];
+  const lines: string[] = [];
+  let i = 0;
+  while (i < words.length && lines.length < maxLines) {
+    const isLast = lines.length === maxLines - 1;
+    let line = words[i] as string;
+    i++;
+    while (i < words.length && measure(`${line} ${words[i]}`) <= maxWidth) {
+      line = `${line} ${words[i]}`;
+      i++;
+    }
+    if (isLast && i < words.length) {
+      // More text remains than fits: end the last line with an ellipsis.
+      let parts = line.split(' ');
+      while (parts.length > 1 && measure(`${parts.join(' ')}\u2026`) > maxWidth) parts = parts.slice(0, -1);
+      let last = parts.join(' ');
+      while (last.length > 1 && measure(`${last}\u2026`) > maxWidth) last = last.slice(0, -1);
+      line = `${last}\u2026`;
+      i = words.length;
+    }
+    lines.push(line);
+  }
+  return lines;
+}
+
+const LINES_NEW_ZONE = [
+  'A new colour of dark began here.',
+  'The water changed its mind about us.',
+  'We crossed a line I could not see.',
+];
+const LINES_FOLLOWED = [
+  'Something followed the lamp down.',
+  'The glass was not empty for long.',
+  'It knew when I looked away.',
+];
+const LINES_WATCHED = [
+  'I felt the far dark take notice.',
+  'Something turned, a long way off.',
+  'The lamp was looked at, once.',
+];
+const LINES_CLEAN_MET = [
+  'Something small came to see the lamp.',
+  'The dark was kind enough to introduce itself.',
+];
+const LINES_CLEAN = [
+  'The water was kind today.',
+  'Nothing watched. Nothing minded.',
+  'A quiet descent, all the way down.',
+];
+
+/**
+ * One short explorer's line for the bottom of a page, chosen by what the dive
+ * was like. Deterministic: the same page always gets the same line, so the
+ * on-screen page and the exported PNG agree.
+ */
+export function explorerLine(page: DiveLogPage): string {
+  const pick = (options: readonly string[]): string =>
+    options[Math.abs(Math.floor(page.id)) % options.length] as string;
+  if (page.newZone) return pick(LINES_NEW_ZONE);
+  if (page.distractions > 0) return pick(page.eyePeak >= 2 ? LINES_FOLLOWED : LINES_WATCHED);
+  return pick(page.creatures.length > 0 ? LINES_CLEAN_MET : LINES_CLEAN);
 }

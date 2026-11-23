@@ -25,6 +25,7 @@ import { CREATURE_ART } from './creature-art.js';
 import paperUrl from '../art/out/paper.webp';
 import { renderPageHtml, sampleDiveLogPage, exportPagePng, escapeHtml } from './dive-log-render.js';
 import { shouldShowCover, COVER_TIMELINE, COVER_SESSION_KEY } from './cover.js';
+import { wrapText } from './dive-log.js';
 import { formatLogDate, logFilename, type DiveLogPage } from './dive-log.js';
 import { eyeCaption } from './session.js';
 import eyeUrl from '../art/out/eye.webp';
@@ -383,12 +384,12 @@ function updateUI(): void {
   const pin = document.getElementById('goal-pin');
   if (pin) {
     pin.classList.toggle('show', diving && goal.length > 0);
-    setText('goal-pin-text', goal);
+    renderGoalPin(goal);
   }
   // 12. Dive log: the Log tab follows real state; a fresh page opens after the card.
   if (!logShowcaseLock) renderLogList(state.diveLog);
   showPendingDiveLog();
-  const goalInput = document.getElementById('goal-input') as HTMLInputElement | null;
+  const goalInput = document.getElementById('goal-input') as HTMLTextAreaElement | null;
   if (goalInput && document.activeElement !== goalInput && goalInput.value !== goal) {
     goalInput.value = goal;
   }
@@ -520,6 +521,44 @@ function playReturn(): void {
   audio.creak();
   if (returnTimer !== null) clearTimeout(returnTimer);
   returnTimer = window.setTimeout(() => scene.classList.remove('returning'), RETURN_MS);
+}
+
+// ---- Pinned goal slip ----------------------------------------------------
+
+const GOAL_PIN_FONT = "500 17px Caveat, 'Bradley Hand', cursive";
+const GOAL_PIN_TEXT_WIDTH = 224; // pin max-width minus its horizontal padding
+let goalPinKey = '';
+let goalPinCtx: CanvasRenderingContext2D | null = null;
+
+/**
+ * Show the goal on the pinned slip as at most two lines, wrapped at word
+ * boundaries with an ellipsis on line 2 if it is still too long. Measured
+ * with the same font the slip uses, so the lines match what is drawn.
+ */
+function renderGoalPin(goal: string): void {
+  if (goal === goalPinKey) return;
+  goalPinKey = goal;
+  const host = document.getElementById('goal-pin-text');
+  if (!host) return;
+  goalPinCtx ??= document.createElement('canvas').getContext('2d');
+  const ctx = goalPinCtx;
+  let lines: string[] = [goal];
+  if (ctx) {
+    ctx.font = GOAL_PIN_FONT;
+    lines = wrapText((t) => ctx.measureText(t).width, goal, GOAL_PIN_TEXT_WIDTH, 2);
+  }
+  host.replaceChildren(
+    ...lines.map((line) => {
+      const el = document.createElement('span');
+      el.className = 'goal-pin-line';
+      el.textContent = line;
+      return el;
+    }),
+  );
+}
+// Re-measure once the handwriting font has loaded.
+if (typeof document !== 'undefined' && document.fonts) {
+  void document.fonts.ready.then(() => { goalPinKey = ''; });
 }
 
 // ---- Dive log -------------------------------------------------------------
@@ -932,11 +971,14 @@ function initApp(): void {
   }
   
   // Focus goal slip: saved as you type (sanitized to 60 chars by the controller).
-  const goalInputEl = document.getElementById('goal-input') as HTMLInputElement | null;
+  const goalInputEl = document.getElementById('goal-input') as HTMLTextAreaElement | null;
   goalInputEl?.addEventListener('input', () => appController.setFocusGoal(goalInputEl.value));
   goalInputEl?.addEventListener('keydown', (e) => {
     e.stopPropagation(); // typing must not trigger global shortcuts (Shift+D etc.)
-    if (e.key === 'Enter') goalInputEl.blur();
+    if (e.key === 'Enter') {
+      e.preventDefault(); // one-line goal: Enter confirms instead of adding a line
+      goalInputEl.blur();
+    }
   });
 
   // 3. 綁定 START DESCENT 按鈕

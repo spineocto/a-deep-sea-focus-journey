@@ -453,7 +453,7 @@
   transform: rotate(0.6deg);
   text-transform: none;
   letter-spacing: 0;
-  max-height: 84vh;
+  max-height: 92vh;
   overflow: hidden;
 }
 .log-head {
@@ -479,19 +479,34 @@
 .log-row dd { font-family: var(--font-hand); font-size: 22px; line-height: 1.15; }
 .log-sketch-wrap {
   display: flex;
-  justify-content: flex-end;
-  height: 130px;
-  margin-top: 6px;
+  justify-content: center;
+  height: clamp(130px, 25vh, 230px);
+  margin-top: 12px;
 }
 .log-sketch {
   height: 100%;
   width: auto;
-  max-width: 170px;
+  max-width: 100%;
   object-fit: contain;
   filter: grayscale(1) contrast(1.1);
   mix-blend-mode: multiply;
   opacity: 0.85;
   transform: rotate(-2deg);
+}
+.log-line {
+  margin-top: 8px;
+  text-align: center;
+  font-family: var(--font-hand);
+  font-size: 24px;
+  line-height: 1.2;
+}
+.log-foot {
+  margin-top: 8px;
+  text-align: center;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 12px;
+  opacity: 0.55;
 }
 .log-bell { height: 100%; color: var(--ink); opacity: 0.8; }
 

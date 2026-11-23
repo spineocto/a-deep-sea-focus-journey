@@ -4,8 +4,10 @@
  * drawn locally with the fonts already bundled (IM Fell English, Caveat).
  */
 import {
+  explorerLine,
   eyePeakPhrase,
   formatLogDate,
+  wrapText,
   type DiveLogPage,
 } from './dive-log.js';
 
@@ -54,6 +56,8 @@ export function renderPageHtml(page: DiveLogPage, artUrl: string | undefined): s
     `<p class="log-goal"><span class="log-goal-k">Meant to focus on</span> ${escapeHtml(pageGoalText(page))}</p>` +
     `<dl class="log-rows">${rows}</dl>` +
     `<div class="log-sketch-wrap">${sketch}</div>` +
+    `<p class="log-line">${escapeHtml(explorerLine(page))}</p>` +
+    `<p class="log-foot">A Deep Sea Focus Journey</p>` +
     `</article>`
   );
 }
@@ -90,23 +94,6 @@ function loadImage(url: string): Promise<HTMLImageElement | null> {
     img.onerror = () => resolve(null);
     img.src = url;
   });
-}
-
-function wrapLines(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
-  const words = text.split(' ');
-  const lines: string[] = [];
-  let line = '';
-  for (const w of words) {
-    const test = line === '' ? w : `${line} ${w}`;
-    if (ctx.measureText(test).width > maxWidth && line !== '') {
-      lines.push(line);
-      line = w;
-    } else {
-      line = test;
-    }
-  }
-  if (line !== '') lines.push(line);
-  return lines;
 }
 
 /** Draw the page to a canvas. Fonts are awaited first so text is never fallback. */
@@ -169,7 +156,7 @@ export async function drawPageToCanvas(
   ctx.globalAlpha = 1;
   ctx.font = `46px ${FONT_HAND}`;
   let y = 260;
-  for (const line of wrapLines(ctx, pageGoalText(page), right - left).slice(0, 3)) {
+  for (const line of wrapText((t) => ctx.measureText(t).width, pageGoalText(page), right - left, 2)) {
     ctx.fillText(line, left, y);
     y += 52;
   }
@@ -182,7 +169,7 @@ export async function drawPageToCanvas(
     ctx.fillText(k, left, y);
     ctx.globalAlpha = 1;
     ctx.font = `38px ${FONT_HAND}`;
-    const lines = wrapLines(ctx, v, right - left - 250).slice(0, 3);
+    const lines = wrapText((t) => ctx.measureText(t).width, v, right - left - 250, 3);
     lines.forEach((line, i) => ctx.fillText(line, left + 250, y + i * 40));
     y += Math.max(1, lines.length) * 40 + 24;
     ctx.strokeStyle = 'rgba(42,34,48,0.18)';
@@ -193,9 +180,12 @@ export async function drawPageToCanvas(
     ctx.stroke();
   }
 
-  // Sketch (bottom right): the creature, or a small ink bell.
-  const sx = right - 300;
-  const sy = H - 120 - 300;
+  // Sketch: centred in the lower area, between the rows and the explorer's line.
+  const lineTop = H - 215; // the explorer's line sits above the footer
+  const sketchTop = y - 10;
+  const size = Math.max(160, Math.min(440, lineTop - sketchTop - 20));
+  const cx = W / 2;
+  const cy = sketchTop + 10 + size / 2;
   const art = artUrl ? await loadImage(artUrl) : null;
   if (art) {
     ctx.save();
@@ -203,40 +193,52 @@ export async function drawPageToCanvas(
     ctx.globalAlpha = 0.85;
     // ctx.filter is unsupported in some browsers; the art still draws, just in colour.
     ctx.filter = 'grayscale(1) contrast(1.1)';
-    const scale = Math.min(300 / art.width, 300 / art.height);
+    const scale = Math.min(size / art.width, size / art.height);
     const dw = art.width * scale;
     const dh = art.height * scale;
-    ctx.translate(sx + 150, sy + 150);
-    ctx.rotate(-0.04);
+    ctx.translate(cx, cy);
+    ctx.rotate(-0.035);
     ctx.drawImage(art, -dw / 2, -dh / 2, dw, dh);
     ctx.restore();
   } else {
+    // A small ink bell on its cable, scaled to the sketch area.
     ctx.save();
     ctx.strokeStyle = INK;
     ctx.lineWidth = 3;
     ctx.lineCap = 'round';
-    const cx = sx + 150;
+    const k = size / 300;
+    const top = cy - size / 2;
     ctx.beginPath();
-    ctx.moveTo(cx, sy);
-    ctx.lineTo(cx, sy + 90);
+    ctx.moveTo(cx, top);
+    ctx.lineTo(cx, top + 90 * k);
     ctx.stroke();
     ctx.beginPath();
-    ctx.arc(cx, sy + 110, 14, 0, Math.PI * 2);
+    ctx.arc(cx, top + 110 * k, 14 * k, 0, Math.PI * 2);
     ctx.stroke();
     ctx.beginPath();
-    ctx.arc(cx, sy + 200, 90, 0, Math.PI * 2);
+    ctx.arc(cx, top + 200 * k, 90 * k, 0, Math.PI * 2);
     ctx.stroke();
     ctx.beginPath();
-    ctx.arc(cx, sy + 200, 52, 0, Math.PI * 2);
+    ctx.arc(cx, top + 200 * k, 52 * k, 0, Math.PI * 2);
     ctx.stroke();
     ctx.restore();
+  }
+
+  // The explorer's line, centred, a little smaller than the goal.
+  ctx.textAlign = 'center';
+  ctx.font = `44px ${FONT_HAND}`;
+  let ly = lineTop + 36;
+  for (const line of wrapText((t) => ctx.measureText(t).width, explorerLine(page), right - left, 2)) {
+    ctx.fillText(line, W / 2, ly);
+    ly += 48;
   }
 
   // Footer
   ctx.font = `italic 20px ${FONT_DISPLAY}`;
   ctx.globalAlpha = 0.55;
-  ctx.fillText('A Deep Sea Focus Journey', left, H - 70);
+  ctx.fillText('A Deep Sea Focus Journey', W / 2, H - 70);
   ctx.globalAlpha = 1;
+  ctx.textAlign = 'left';
   return canvas;
 }
 

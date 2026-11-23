@@ -593,7 +593,11 @@ export class AppControllerImpl implements AppController {
     //      eye back one step.
     const completion = completeRound(this.session);
     this.session = completion.session;
+    // A new zone is a deeper chapter than any earlier page reached.
+    const chapterNow = this.chapterForDepth(this.depthState.totalDepth);
+    const deepestBefore = this.diveLog.reduce((m, p) => Math.max(m, p.chapter), 1);
     const page = makeDiveLogPage({
+      newZone: chapterNow > deepestBefore,
       at: Date.now(),
       goal: this.session.focusGoal,
       durationMin: this.roundDurationMin,
