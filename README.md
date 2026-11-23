@@ -110,7 +110,7 @@ focus-core 包含 9 個核心模組：
 - 潛水球動畫與深度指示器
 - 生物卡片插畫與揭露動畫
 - 分心觸發的視覺效果（巨眼、陰影）
-- 音效整合（sonar ping、deep rumble）
+- 音效整合（sonar ping、procedural zone ambience）
 
 ## How Kiro was used
 _Spec-driven development, steering docs, hooks — write-up coming soon._ See [`/.kiro`](.kiro).

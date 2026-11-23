@@ -340,7 +340,8 @@ function updateUI(): void {
   updateZoneTitle(zoneIdx, firstPaint);
   firstPaint = false;
 
-  // Ambience plays only while actively focusing.
+  // Ambience plays only while actively focusing; its character follows the zone.
+  audio.setZone(zoneIdx);
   if (currentState === AppState.FOCUSING || currentState === AppState.DISTRACTED) {
     audio.startAmbience();
   } else {

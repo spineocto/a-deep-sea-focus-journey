@@ -1,33 +1,34 @@
 /**
- * Audio: a looped deep-sea rumble during focus and a one-shot sonar ping
- * when a round completes or a card is revealed.
+ * Audio: procedural per-zone ambience while focusing (Web Audio, see
+ * zone-ambience.ts), a one-shot sonar ping when a round completes or a card
+ * is revealed, and a quiet cable creak on the return reaction.
  *
  * Rules (docs/audio.md + .kiro/steering/product.md):
  * - Muted by default; a toggle turns it on.
- * - Browsers block autoplay until a user gesture, so playback only starts
- *   after the toggle (or START DESCENT) is clicked.
- * - Ambience is quiet (~0.25) and fades in/out over ~1.5 s.
+ * - Browsers block audio until a user gesture, so the AudioContext is only
+ *   created after the toggle (or START DESCENT) has been clicked.
+ * - Ambience is quiet (~0.25) and crossfades between zones.
  * - The ping is ~0.5 and never overlaps itself.
  *
- * Both files are CC0. Vite serves public/ at the site root.
+ * Only the ping is a file (CC0). Everything else is synthesised.
  */
-
 import { createSynth } from './synth.js';
+import { createZoneAmbience } from './zone-ambience.js';
 
-const RUMBLE_URL = '/audio/deep-rumble.mp3';
 const PING_URL = '/audio/sonar-ping.mp3';
 const STORAGE_KEY = 'audio-enabled';
 const AMBIENCE_VOLUME = 0.25;
 const PING_VOLUME = 0.5;
-const FADE_MS = 1500;
 const CREAK_VOLUME = 0.05;
 
 export interface AudioController {
   isEnabled(): boolean;
   /** Toggle sound on/off. Returns the new state. Must be called from a click. */
   setEnabled(enabled: boolean): boolean;
-  /** Start the looped ambience (no-op if muted or already playing). */
+  /** Start the zone ambience (no-op if muted or already playing). */
   startAmbience(): void;
+  /** Crossfade the ambience to the character of another zone (0..4). */
+  setZone(zone: number): void;
   /** Fade the ambience out and stop it. */
   stopAmbience(): void;
   /** Play the sonar ping once (no-op if muted). */
@@ -41,65 +42,28 @@ export function createAudioController(): AudioController {
     typeof localStorage !== 'undefined' &&
     localStorage.getItem(STORAGE_KEY) === 'on';
 
-  let rumble: HTMLAudioElement | null = null;
-  let ping: HTMLAudioElement | null = null;
-  let fadeTimer: number | null = null;
-  let ambienceWanted = false;
   const synth = createSynth();
+  const ambience = createZoneAmbience(synth, AMBIENCE_VOLUME);
+  let ping: HTMLAudioElement | null = null;
+  let ambienceWanted = false;
+  let zone = 0;
 
-  function ensureElements(): void {
-    if (typeof Audio === 'undefined') return;
-    if (!rumble) {
-      rumble = new Audio(RUMBLE_URL);
-      rumble.loop = true;
-      rumble.volume = 0;
-      rumble.preload = 'auto';
-    }
-    if (!ping) {
-      ping = new Audio(PING_URL);
-      ping.volume = PING_VOLUME;
-      ping.preload = 'auto';
-    }
-  }
-
-  function clearFade(): void {
-    if (fadeTimer !== null) {
-      clearInterval(fadeTimer);
-      fadeTimer = null;
-    }
-  }
-
-  function fadeTo(target: number, onDone?: () => void): void {
-    if (!rumble) return;
-    clearFade();
-    const start = rumble.volume;
-    const t0 = Date.now();
-    fadeTimer = setInterval(() => {
-      if (!rumble) return clearFade();
-      const k = Math.min(1, (Date.now() - t0) / FADE_MS);
-      rumble.volume = start + (target - start) * k;
-      if (k >= 1) {
-        clearFade();
-        onDone?.();
-      }
-    }, 50) as unknown as number;
+  function ensurePing(): void {
+    if (typeof Audio === 'undefined' || ping) return;
+    ping = new Audio(PING_URL);
+    ping.volume = PING_VOLUME;
+    ping.preload = 'auto';
   }
 
   function startAmbience(): void {
     ambienceWanted = true;
     if (!enabled) return;
-    ensureElements();
-    if (!rumble) return;
-    rumble.play().catch(() => {
-      /* Autoplay still blocked: it will start on the next gesture. */
-    });
-    fadeTo(AMBIENCE_VOLUME);
+    ambience.start(zone);
   }
 
   function stopAmbience(): void {
     ambienceWanted = false;
-    if (!rumble) return;
-    fadeTo(0, () => rumble?.pause());
+    ambience.stop();
   }
 
   return {
@@ -112,18 +76,19 @@ export function createAudioController(): AudioController {
         /* Private mode: the toggle still works for this session. */
       }
       if (next) {
-        ensureElements();
+        synth.ensure(); // created inside the click, so the browser allows it
+        ensurePing();
         if (ambienceWanted) startAmbience();
       } else {
-        if (rumble) {
-          clearFade();
-          rumble.pause();
-          rumble.volume = 0;
-        }
+        ambience.stop(true);
       }
       return enabled;
     },
     startAmbience,
+    setZone(z: number): void {
+      zone = z;
+      if (enabled) ambience.setZone(z);
+    },
     stopAmbience,
     creak(): void {
       if (!enabled) return;
@@ -131,7 +96,7 @@ export function createAudioController(): AudioController {
     },
     ping(): void {
       if (!enabled) return;
-      ensureElements();
+      ensurePing();
       if (!ping) return;
       ping.currentTime = 0;
       ping.play().catch(() => {});
