@@ -6,7 +6,7 @@
  * @vitest-environment jsdom
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { createAppController } from '../app-controller.js';
 import { AppState } from '../state-machine.js';
 import { timer } from '../timer.js';
@@ -125,5 +125,45 @@ describe('Manual Distraction Test', () => {
     // 3. 驗證累積懲罰不超過 50%
     expect(state.depthState.roundRisePenalty).toBeLessThanOrEqual(50);
     expect(state.depthState.roundRisePenalty).toBeGreaterThan(0);
+  });
+
+  describe('triggerTestDistraction (debug button)', () => {
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('is refused outside FOCUSING', () => {
+      expect(appController.triggerTestDistraction()).toBe(false);
+      expect(appController.getState().stateMachine.getState()).toBe(AppState.IDLE);
+    });
+
+    it('runs the real sequence and the round keeps counting afterwards', () => {
+      vi.useFakeTimers();
+      const t0 = new Date('2026-12-01T10:00:00Z').getTime();
+      vi.setSystemTime(t0);
+      appController.handleStartFocus(15);
+      vi.setSystemTime(t0 + 60_000); // one focused minute
+      appController.update();
+      const depthBefore = appController.getState().depthState.roundDescentDepth;
+
+      expect(appController.triggerTestDistraction()).toBe(true);
+      const s = appController.getState();
+      expect(s.stateMachine.getState()).toBe(AppState.DISTRACTED);
+      expect(s.session.eyeLevel).toBe(1);
+      expect(s.depthState.roundRisePenalty).toBeGreaterThan(0);
+      // Regression: the timer must not be left marked "hidden".
+      expect(s.timerState?.hiddenAt).toBeNull();
+      expect(s.timerState?.distractionPenaltyMs).toBe(0);
+
+      // After the 3 s sequence it is FOCUSING again and time still counts.
+      vi.setSystemTime(t0 + 64_000);
+      appController.update();
+      expect(appController.getState().stateMachine.getState()).toBe(AppState.FOCUSING);
+      const timerState = appController.getState().timerState!;
+      expect(timer.getElapsedFocusedTime(timerState, t0 + 64_000)).toBe(64_000);
+      vi.setSystemTime(t0 + 120_000);
+      appController.update();
+      expect(appController.getState().depthState.roundDescentDepth).toBeGreaterThan(depthBefore * 0.8);
+    });
   });
 });

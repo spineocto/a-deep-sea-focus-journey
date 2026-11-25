@@ -266,9 +266,11 @@ button:disabled {
   gap: 14px;
 }
 
+/* Top-right: the bottom-right corner is taken by the host's
+   "Powered by Netlify" badge on the free plan. */
 .corner {
   position: absolute;
-  bottom: 24px;
+  top: 24px;
   right: 32px;
   z-index: 5;
 }
@@ -285,17 +287,27 @@ button:disabled {
     left: 0;
     right: 0;
     justify-content: space-between;
-    padding: 12vh 0 8vh;
+    padding: 12vh 0 12vh; /* bottom clears the depth readout in the corner */
   }
   .timer-ring {
-    width: min(60vw, 28vh);
+    width: min(52vw, 24vh);
   }
   .timer {
     font-size: min(15vw, 9vh);
   }
   .wordmark { left: 20px; top: 20px; }
   .depth-rail, .depth-readout { left: 20px; }
-  .corner { right: 20px; }
+  .corner { right: 20px; top: 22px; }
+  .corner-group { gap: 16px; } /* fits beside the wordmark on a phone */
+}
+@media (max-aspect-ratio: 1/1) and (max-width: 400px) {
+  .wordmark { font-size: 13px; }
+}
+/* Short phones (e.g. 375x667): tighten the controls so the goal slip
+   stays below the bell. */
+@media (max-aspect-ratio: 1/1) and (max-height: 740px) {
+  .hud { padding: 10vh 0 12.5vh; } /* bottom still clears the depth readout */
+  .controls { gap: 8px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

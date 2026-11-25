@@ -94,6 +94,13 @@ export interface AppController {
   /** Record that a distraction just happened (raises the eye, counts it). */
   registerDistraction(): void;
 
+  /**
+   * Debug "Test distraction": run the same distraction sequence as a real
+   * hidden tab (DISTRACTED, eye closer, rise penalty), without pretending
+   * focus time was lost. Returns false unless FOCUSING.
+   */
+  triggerTestDistraction(): boolean;
+
   /** Set the one-line focus goal for the current/next dive. */
   setFocusGoal(goal: string): void;
 
@@ -448,6 +455,31 @@ export class AppControllerImpl implements AppController {
     this.save();
   }
 
+  triggerTestDistraction(): boolean {
+    if (this.stateMachine.getState() !== AppState.FOCUSING || !this.timerState) return false;
+    // No time penalty: the simulated absence never actually happened.
+    this.applyDistraction(0);
+    return true;
+  }
+
+  /**
+   * The distraction sequence shared by the real visibility path and the
+   * debug test: enter DISTRACTED, bring the eye closer, rise by the round's
+   * penalty, and exclude the hidden time from the focused time.
+   */
+  private applyDistraction(hiddenDuration: number): void {
+    if (!this.timerState) return;
+    this.stateMachine.transition({ type: 'DISTRACTION_DETECTED' });
+    this.distractedStartAt = Date.now();
+    // Escalating eye: the watcher comes a step closer.
+    this.session = registerDistraction(this.session);
+    const penalty = distractionDetector.calculateRisePenalty(this.depthState.roundDescentDepth);
+    this.depthState = this.depthCalculator.applyRisePenalty(this.depthState, penalty);
+    // Hidden time does not count as focus (demo-accelerated hiddenDuration).
+    this.timerState = timer.applyDistractionPenalty(this.timerState, hiddenDuration);
+    this.save();
+  }
+
   setFocusGoal(goal: string): void {
     this.session = { ...this.session, focusGoal: sanitizeFocusGoal(goal) };
     this.save();
@@ -656,23 +688,7 @@ export class AppControllerImpl implements AppController {
         const event = distractionDetector.checkDistraction(hiddenRealMs);
         
         if (event.triggered) {
-          // 觸發分心：轉換狀態
-          this.stateMachine.transition({ type: 'DISTRACTION_DETECTED' });
-          this.distractedStartAt = Date.now();
-
-          // Escalating eye: the watcher comes a step closer.
-          this.session = registerDistraction(this.session);
-          
-          // 計算上浮懲罰
-          const penalty = distractionDetector.calculateRisePenalty(
-            this.depthState.roundDescentDepth
-          );
-          this.depthState = this.depthCalculator.applyRisePenalty(this.depthState, penalty);
-          
-          // 將隱藏時間加入懲罰（使用加速後的 hiddenDuration）
-          this.timerState = timer.applyDistractionPenalty(this.timerState, hiddenDuration);
-          
-          this.save();
+          this.applyDistraction(hiddenDuration);
         }
         // 若未觸發，時間自動計入專注（不需額外處理）
       }

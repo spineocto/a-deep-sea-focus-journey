@@ -7,7 +7,6 @@ import { demoMode } from './demo-mode.js';
 import { storage } from './storage.js';
 import { CREATURE_CARDS } from './codex-manager.js';
 import { createDepthCalculator } from './depth-calculator.js';
-import { distractionDetector } from './distraction-detector.js';
 import { createAudioController } from './audio.js';
 import { createAmbientLayer, zoneIndexForDepth } from './ambient.js';
 import { Config } from './config.js';
@@ -152,7 +151,10 @@ export function updateButtonVisibility(currentState: AppState, endingSeen: boole
 
 const OXYGEN_DRAIN = 0.65; // oxygen never drops below 35% during a round
 let lastOxygen = 1;
-let codexKey = '';
+// Render caches. Start (and reset) at a value no real list produces: '' is
+// the key of an empty list, so starting there skipped the first render and
+// a brand-new player saw an empty codex with no locked silhouettes.
+let codexKey = '__stale__';
 /** When true, updateUI leaves the codex drawer alone (debug showcase). */
 let codexShowcaseLock = false;
 let firstPaint = true;
@@ -571,7 +573,7 @@ if (typeof document !== 'undefined' && document.fonts) {
 
 let pendingLogPage: DiveLogPage | null = null;
 let shownLogPage: DiveLogPage | null = null;
-let logKey = '';
+let logKey = '__stale__';
 let logShowcaseLock = false;
 
 function showDiveLog(page: DiveLogPage): void {
@@ -649,71 +651,11 @@ function sampleLogPages(): DiveLogPage[] {
  * 只在 FOCUSING 狀態可用。
  */
 function handleTestDistraction(): void {
-  const state = appController.getState();
-  const currentState = state.stateMachine.getState();
-  
-  // 只在 FOCUSING 狀態可用
-  if (currentState !== AppState.FOCUSING) {
+  // Goes through the controller so it changes the real state, exactly like a
+  // hidden tab. (Mutating the getState() snapshot here used to leave the
+  // timer marked "hidden" forever, freezing the round at its full length.)
+  if (!appController.triggerTestDistraction()) {
     console.warn('Test distraction only available in FOCUSING state');
-    return;
-  }
-  
-  const timerState = state.timerState;
-  if (!timerState) {
-    console.error('Timer state not found');
-    return;
-  }
-  
-  // 模擬隱藏 6 秒（超過 5 秒閾值）
-  const nowMs = Date.now();
-  const sixSecondsAgo = nowMs - 6000;
-  
-  // 手動設定 hiddenAt 為 6 秒前
-  timerState.hiddenAt = sixSecondsAgo;
-  
-  // 呼叫 markVisible 計算隱藏時長
-  const { state: newTimerState, hiddenRealMs, hiddenDuration } = timer.markVisible(
-    timerState,
-    nowMs
-  );
-  
-  // 更新 timer state
-  state.timerState = newTimerState;
-  
-  // 判斷是否觸發分心（應該會觸發，因為 6 秒 > 5 秒）
-  const event = distractionDetector.checkDistraction(hiddenRealMs);
-  
-  if (event.triggered) {
-    // 轉換到 DISTRACTED 狀態
-    state.stateMachine.transition({ type: 'DISTRACTION_DETECTED' });
-    appController.markDistractionStart();
-    appController.registerDistraction();
-    
-    // 計算上浮懲罰
-    const penalty = distractionDetector.calculateRisePenalty(
-      state.depthState.roundDescentDepth
-    );
-    
-    // 應用上浮懲罰
-    const depthCalculator = createDepthCalculator();
-    state.depthState = depthCalculator.applyRisePenalty(state.depthState, penalty);
-    
-    // 將隱藏時間加入懲罰
-    state.timerState = timer.applyDistractionPenalty(state.timerState, hiddenDuration);
-    
-    // 儲存狀態
-    appController.save();
-    
-    if (import.meta.env.DEV) {
-      console.log('Test distraction triggered:', {
-        hiddenRealMs,
-        hiddenDuration,
-        penalty,
-        newRisePenalty: state.depthState.roundRisePenalty
-      });
-    }
-  } else {
-    console.warn('Test distraction did not trigger (should not happen)');
   }
 }
 

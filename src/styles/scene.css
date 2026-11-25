@@ -226,10 +226,15 @@ body.ambient-motion-off .ambient-fx {
 
 /* ---- Portrait / narrow screens --------------------------------------- */
 @media (max-aspect-ratio: 1/1) {
-  .scene { --bell: min(78vw, 40vh); }
-  .bell-anchor { left: 50vw; top: 56vh; }
-  .bell-bob { transform-origin: 0 -56vh; }
+  /* Phone: timer ring on top, controls at the bottom, a smaller bell in the
+     gap between them so neither the ring nor the goal slip covers it. */
+  .scene { --bell: min(50vw, 23vh); }
+  .bell-anchor { left: 50vw; top: 50vh; }
+  .bell-bob { transform-origin: 0 -50vh; }
   .cable { height: 12vh; }
+  /* The tick numbers would run into the duration buttons; keep the marks. */
+  .depth-ticks { right: 4vw; }
+  .depth-tick-num { display: none; }
 }
 
 /* ---- Reduced motion --------------------------------------------------- */
@@ -492,8 +497,19 @@ body.ambient-motion-off .depth-ticks { display: none; }
 }
 
 @media (max-aspect-ratio: 1/1) {
-  .zone-title { top: 30vh; }
+  /* Phone: between the bell and ABANDON (zone entry happens mid-dive, when
+     the goal slip and duration buttons are hidden), so it never covers the bell. */
+  .zone-title { top: 60vh; gap: 2px; }
+  .zone-title-name { font-size: 28px; }
+  /* In IDLE (e.g. reopening the page at depth) that spot holds the goal
+     slip and duration buttons, so the heading is skipped on a phone. */
+  .scene[data-state='IDLE'] .zone-title { display: none; }
   .depth-ticks { right: 4vw; }
+}
+/* Short phones: only "Chapter N" and the zone name fit above ABANDON. */
+@media (max-aspect-ratio: 1/1) and (max-height: 740px) {
+  .zone-title-epigraph,
+  .zone-title-depth { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
