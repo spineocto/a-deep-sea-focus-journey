@@ -341,9 +341,15 @@ function updateUI(): void {
   updateZoneTitle(zoneIdx, firstPaint);
   firstPaint = false;
 
-  // Ambience plays only while actively focusing; its character follows the zone.
+  // Ambience plays while actively focusing, or while a debug/preview depth
+  // override is set (so each zone can be auditioned). Its character follows
+  // the zone.
   audio.setZone(zoneIdx);
-  if (currentState === AppState.FOCUSING || currentState === AppState.DISTRACTED) {
+  if (
+    currentState === AppState.FOCUSING ||
+    currentState === AppState.DISTRACTED ||
+    override !== null
+  ) {
     audio.startAmbience();
   } else {
     audio.stopAmbience();
@@ -765,12 +771,7 @@ function initApp(): void {
     if (e.shiftKey && e.key.toLowerCase() === 'd' && !e.metaKey && !e.ctrlKey) {
       debugPanel?.classList.toggle('hidden');
     }
-    if (e.key === 'Escape') {
-      hideDiveLog();
-      setCodexOpen(false);
-      codexShowcaseLock = false;
-      setDepthOverride(null);
-    }
+    if (e.key === 'Escape') resetDebugView();
   });
   const codexToggle = document.getElementById('codex-toggle');
   const codexPanel = document.getElementById('codex-panel');
@@ -819,10 +820,13 @@ function initApp(): void {
   }
 
   // Debug: ?debug=1&return=1 holds the ink in, then plays the return reaction.
+  let returnDemoTimer: number | null = null;
   const playReturnDemo = (): void => {
+    clearSceneDemos();
     const scene = document.getElementById('app');
     scene?.classList.add('ink-demo');
-    window.setTimeout(() => {
+    returnDemoTimer = window.setTimeout(() => {
+      returnDemoTimer = null;
       scene?.classList.remove('ink-demo');
       playReturn();
     }, 1800);
@@ -851,9 +855,13 @@ function initApp(): void {
 
   // Debug codex showcase: open the drawer with a synthetic unlocked list,
   // via the debug buttons or ?codex=all / ?codex=mixed. Closing releases it.
+  // Reset the caches to a value no real list can produce ('' is the real
+  // key for an empty list, so it would leave the showcase on screen).
   const releaseAndClose = (): void => {
     codexShowcaseLock = false;
-    codexKey = '';
+    codexKey = '__stale__';
+    logShowcaseLock = false;
+    logKey = '__stale__';
     setCodexOpen(false);
   };
   document.getElementById('codex-close')?.addEventListener('click', releaseAndClose);
@@ -877,7 +885,10 @@ function initApp(): void {
   // touching game state. Button "Play unlock" cycles through the six cards;
   // ?debug=1&reveal=1 plays the first one on load, ?reveal=<card id> picks one.
   let unlockDemoIdx = 0;
+  let debugCardOpen = false;
+  document.getElementById('card-close-button')?.addEventListener('click', () => { debugCardOpen = false; });
   const playUnlock = (id?: string): void => {
+    debugCardOpen = true;
     const card = (id ? CREATURE_CARDS.find(c => c.id === id) : undefined) ?? CREATURE_CARDS[unlockDemoIdx % CREATURE_CARDS.length];
     if (!card) return;
     if (!id) unlockDemoIdx += 1;
@@ -891,13 +902,43 @@ function initApp(): void {
 
   // Debug: escalating-eye level. ?eye=1|2|3 pins the level; the buttons set
   // it live. updateUI reads eyeLevelOverride each frame when it is non-null.
+  // Clicking the active level again clears the override (back to live).
+  const eyeButtons = [1, 2, 3].map((n) => document.getElementById(`debug-eye-${n}`));
   const setEyeOverride = (level: number | null): void => {
     eyeLevelOverride = level;
+    eyeButtons.forEach((btn, i) => btn?.classList.toggle('selected', level === i + 1));
     updateUI();
   };
-  document.getElementById('debug-eye-1')?.addEventListener('click', () => setEyeOverride(1));
-  document.getElementById('debug-eye-2')?.addEventListener('click', () => setEyeOverride(2));
-  document.getElementById('debug-eye-3')?.addEventListener('click', () => setEyeOverride(3));
+  eyeButtons.forEach((btn, i) =>
+    btn?.addEventListener('click', () => {
+      const next = eyeLevelOverride === i + 1 ? null : i + 1;
+      clearSceneDemos();
+      setEyeOverride(next);
+    }),
+  );
+
+  // Debug previews must not pile up. Scene effects (eye level, held ink,
+  // return reaction) replace each other; RESET VIEW / Escape clears every
+  // debug override and overlay at once. Game state is never touched.
+  function clearSceneDemos(): void {
+    if (returnDemoTimer !== null) clearTimeout(returnDemoTimer);
+    returnDemoTimer = null;
+    if (returnTimer !== null) clearTimeout(returnTimer);
+    returnTimer = null;
+    document.getElementById('app')?.classList.remove('ink-demo', 'returning');
+    setEyeOverride(null);
+  }
+  function resetDebugView(): void {
+    clearSceneDemos();
+    setDepthOverride(null);
+    releaseAndClose();
+    hideDiveLog();
+    if (debugCardOpen) {
+      debugCardOpen = false;
+      hideCardReveal();
+    }
+  }
+  document.getElementById('debug-reset')?.addEventListener('click', resetDebugView);
   const eyeParam = urlParams.get('eye');
   if (debugOn && eyeParam && ['1', '2', '3'].includes(eyeParam)) {
     setEyeOverride(parseInt(eyeParam, 10));
@@ -913,6 +954,15 @@ function initApp(): void {
     soundToggle.classList.toggle('faint', !on);
   };
   syncSoundToggle();
+  // If sound was left on last visit, the browser keeps audio suspended until
+  // a click. Resume it on the first click anywhere (e.g. a debug zone button).
+  document.addEventListener(
+    'pointerdown',
+    () => {
+      if (audio.isEnabled()) audio.setEnabled(true);
+    },
+    { capture: true, once: true },
+  );
   soundToggle?.addEventListener('click', () => {
     audio.setEnabled(!audio.isEnabled());
     syncSoundToggle();

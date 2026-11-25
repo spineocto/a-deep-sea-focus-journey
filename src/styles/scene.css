@@ -109,6 +109,10 @@ body.ambient-motion-off .ambient-fx {
   z-index: 4;
   pointer-events: none;
   background: url('../../art/out/ink-bleed.webp') center / 100% 100% no-repeat;
+  /* The ink "reaches" by scaling the layer down (scale < 1), which would
+     expose the image's square border. Extend the image's edge ink (rgb
+     8,7,15 at ~96% alpha) outward so there is no visible box. */
+  box-shadow: 0 0 0 40vmax rgba(8, 7, 15, 0.957);
   opacity: 0;
   transform: scale(1.3);
   transition: opacity 2.2s var(--ease-slow), transform 3.2s var(--ease-slow);
@@ -289,6 +293,11 @@ body.ambient-motion-off .bell-bob {
 .scene[data-eye='1'] .eye-far { opacity: calc(0.12 + var(--depth-dark, 0) * 0.07); }
 .scene[data-eye='2'] .eye-far { opacity: calc(0.16 + var(--depth-dark, 0) * 0.07); }
 .scene[data-eye='3'] .eye-far { opacity: calc(0.24 + var(--depth-dark, 0) * 0.07); filter: blur(1.8px); }
+/* The resident eye is absent in the two lit zones (0-1,000 m) and fades in
+   slowly once the bell passes into the bathypelagic dark. */
+.eye-far { transition: opacity 6s var(--ease-slow); }
+.scene[data-zone='0'] .eye-far,
+.scene[data-zone='1'] .eye-far { opacity: 0; }
 
 /* The giant eye takes its size/position/blur from the level vars above, so
    a higher level reads as the eye pressed closer to the glass. */

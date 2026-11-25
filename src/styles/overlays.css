@@ -333,9 +333,11 @@
 /* ---- Debug ------------------------------------------------------------ */
 .debug-panel {
   position: absolute;
-  left: 50%;
-  bottom: 18px;
-  transform: translateX(-50%);
+  /* Right edge stops left of the timer column (which starts at 58vw), so the
+     panel never covers START DESCENT. */
+  right: 44vw;
+  bottom: 6vh;
+  max-width: calc(56vw - 24px);
   z-index: 30;
   display: flex;
   flex-direction: column;
@@ -347,6 +349,7 @@
 
 .debug-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 16px;
   align-items: center;
 }
